@@ -1,11 +1,33 @@
 package com.burhankhanzada.opaquebehavioureditor.editor.text;
 
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.burhankhanzada.opaquebehavioureditor.editor.text.translators.CToCppTranslator;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.translators.CToJavaTranslator;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.translators.CppToCTranslator;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.translators.CppToJavaTranslator;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.translators.ITranslator;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.translators.JavaToCTranslator;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.translators.JavaToCppTranslator;
+
 /**
  * Utility class to perform best-effort regex-based translation 
  * between supported programming languages.
  */
 public class CodeTranslator {
+
+    private static final Map<String, ITranslator> translators = new HashMap<>();
+
+    static {
+        translators.put(LanguageMapping.LANG_CPP.toUpperCase() + "->" + LanguageMapping.LANG_JAVA.toUpperCase(), new CppToJavaTranslator());
+        translators.put(LanguageMapping.LANG_JAVA.toUpperCase() + "->" + LanguageMapping.LANG_CPP.toUpperCase(), new JavaToCppTranslator());
+        translators.put(LanguageMapping.LANG_CPP.toUpperCase() + "->" + LanguageMapping.LANG_C.toUpperCase(), new CppToCTranslator());
+        translators.put(LanguageMapping.LANG_C.toUpperCase() + "->" + LanguageMapping.LANG_CPP.toUpperCase(), new CToCppTranslator());
+        translators.put(LanguageMapping.LANG_JAVA.toUpperCase() + "->" + LanguageMapping.LANG_C.toUpperCase(), new JavaToCTranslator());
+        translators.put(LanguageMapping.LANG_C.toUpperCase() + "->" + LanguageMapping.LANG_JAVA.toUpperCase(), new CToJavaTranslator());
+    }
 
     /**
      * Translates the given code from the source language to the target language.
@@ -25,70 +47,11 @@ public class CodeTranslator {
         if (src.equals(tgt)) return code;
 
         String result = code;
+        String key = src + "->" + tgt;
 
-        if (src.equalsIgnoreCase(LanguageMapping.LANG_CPP) && tgt.equalsIgnoreCase(LanguageMapping.LANG_JAVA)) {
-            // Complex patterns first before we destroy '::'
-            result = result.replaceAll("std::(?:shared|weak|unique)_ptr<\\s*([A-Za-z0-9_]+)\\s*>", "$1");
-            result = result.replaceAll("std::string", "String");
-            result = result.replaceAll("std::cout\\s*<<\\s*(.*?)\\s*<<\\s*std::endl\\s*;", "System.out.println($1);");
-            
-            // Simple symbol replacements
-            result = result.replaceAll("->", ".");
-            result = result.replaceAll("::", ".");
-            result = result.replaceAll("\\bnullptr\\b", "null");
-            result = result.replaceAll("\\bbool\\b", "boolean");
-            result = result.replaceAll("\\bconst\\b", "final");
-        } 
-        else if (src.equalsIgnoreCase(LanguageMapping.LANG_JAVA) && tgt.equalsIgnoreCase(LanguageMapping.LANG_CPP)) {
-            // Naive assumption: most method calls in MDE4CPP are via pointers
-            result = result.replaceAll("\\.", "->");
-            result = result.replaceAll("\\bString\\b", "std::string");
-            result = result.replaceAll("System->out->println\\((.*?)\\);", "std::cout << $1 << std::endl;");
-            result = result.replaceAll("\\bnull\\b", "nullptr");
-            result = result.replaceAll("\\bboolean\\b", "bool");
-            result = result.replaceAll("\\bfinal\\b", "const");
-            
-            // Wrap capitalized object declarations in std::shared_ptr (e.g. "Library lib =" -> "std::shared_ptr<Library> lib =")
-            result = result.replaceAll("\\b([A-Z][A-Za-z0-9_]*)\\s+([a-zA-Z0-9_]+)\\s*=", "std::shared_ptr<$1> $2 =");
-        }
-        else if (src.equalsIgnoreCase(LanguageMapping.LANG_CPP) && tgt.equalsIgnoreCase(LanguageMapping.LANG_C)) {
-            result = result.replaceAll("std::(?:shared|weak|unique)_ptr<\\s*([A-Za-z0-9_]+)\\s*>", "$1*");
-            result = result.replaceAll("std::string", "char*");
-            result = result.replaceAll("std::cout\\s*<<\\s*(.*?)\\s*<<\\s*std::endl\\s*;", "printf(\"%d\\\\n\", $1);");
-            result = result.replaceAll("\\bnullptr\\b", "NULL");
-            result = result.replaceAll("\\bbool\\b", "int");
-            result = result.replaceAll("\\btrue\\b", "1");
-            result = result.replaceAll("\\bfalse\\b", "0");
-            result = result.replaceAll("\\bclass\\b", "struct");
-            result = result.replaceAll("new\\s+([A-Za-z0-9_]+)\\s*\\(\\)", "malloc(sizeof($1))");
-        }
-        else if (src.equalsIgnoreCase(LanguageMapping.LANG_C) && tgt.equalsIgnoreCase(LanguageMapping.LANG_CPP)) {
-            result = result.replaceAll("char\\*", "std::string");
-            result = result.replaceAll("\\bNULL\\b", "nullptr");
-            result = result.replaceAll("malloc\\s*\\(\\s*sizeof\\s*\\(\\s*([A-Za-z0-9_]+)\\s*\\)\\s*\\)", "new $1()");
-            
-            // Convert C-style pointers of objects to std::shared_ptr (e.g. "Library* lib" -> "std::shared_ptr<Library> lib")
-            result = result.replaceAll("\\b([A-Z][A-Za-z0-9_]*)\\s*\\*\\s+([a-zA-Z0-9_]+)", "std::shared_ptr<$1> $2");
-        }
-        else if (src.equalsIgnoreCase(LanguageMapping.LANG_JAVA) && tgt.equalsIgnoreCase(LanguageMapping.LANG_C)) {
-            result = result.replaceAll("\\.", "->");
-            result = result.replaceAll("System->out->println\\((.*?)\\);", "printf(\"%d\\\\n\", $1);");
-            result = result.replaceAll("\\bString\\b", "char*");
-            result = result.replaceAll("\\bnull\\b", "NULL");
-            result = result.replaceAll("\\bboolean\\b", "int");
-            result = result.replaceAll("\\btrue\\b", "1");
-            result = result.replaceAll("\\bfalse\\b", "0");
-            result = result.replaceAll("new\\s+([A-Za-z0-9_]+)\\s*\\(\\)", "malloc(sizeof($1))");
-        }
-        else if (src.equalsIgnoreCase(LanguageMapping.LANG_C) && tgt.equalsIgnoreCase(LanguageMapping.LANG_JAVA)) {
-            result = result.replaceAll("->", ".");
-            result = result.replaceAll("char\\*", "String");
-            result = result.replaceAll("\\bNULL\\b", "null");
-            result = result.replaceAll("printf\\(\"%d\\\\n\"\\s*,\\s*(.*?)\\);", "System.out.println($1);");
-            result = result.replaceAll("malloc\\s*\\(\\s*sizeof\\s*\\(\\s*([A-Za-z0-9_]+)\\s*\\)\\s*\\)", "new $1()");
-            
-            // Remove pointer asterisks from declarations (e.g. "Library* lib" -> "Library lib")
-            result = result.replaceAll("([A-Za-z0-9_]+)\\s*\\*\\s+([A-Za-z0-9_]+)", "$1 $2");
+        ITranslator translator = translators.get(key);
+        if (translator != null) {
+            result = translator.translate(code);
         }
 
         // Fix basic spacing issues (e.g. lib=factory -> lib = factory)

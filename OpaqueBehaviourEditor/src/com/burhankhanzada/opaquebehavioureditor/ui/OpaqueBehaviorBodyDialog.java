@@ -71,6 +71,7 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
     private final CodeEditorConfigurator editorConfigurator;
 
     private boolean suppressListener = false;
+    private final boolean isUml;
 
     public OpaqueBehaviorBodyDialog(Shell parentShell,
                                     List<String> bodies,
@@ -78,13 +79,15 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
                                     String name,
                                     Set<String> contextTypes,
                                     UmlModelDictionary dictionary,
-                                    ISelectionProvider selectionProvider) {
+                                    ISelectionProvider selectionProvider,
+                                    boolean isUml) {
         super(parentShell);
         setShellStyle(getShellStyle() | SWT.RESIZE | SWT.MAX);
         this.behaviourName = name;
         this.contextTypes = contextTypes;
         this.dictionary = dictionary;
         this.selectionProvider = selectionProvider;
+        this.isUml = isUml;
         this.semanticHighlighter = new SemanticHighlighter(dictionary);
         this.modelValidator = new UmlModelValidator(dictionary);
         this.editorConfigurator = new CodeEditorConfigurator(this.semanticHighlighter, this.modelValidator);
@@ -139,12 +142,27 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
         main.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         main.setLayout(new GridLayout(1, false));
 
-        createEntrySection(main);
-        createLanguageSection(main);
+        Composite topSection = new Composite(main, SWT.NONE);
+        GridLayout topLayout = new GridLayout(1, false);
+        topLayout.marginWidth = 0;
+        topLayout.marginHeight = 0;
+        topSection.setLayout(topLayout);
+        
+        GridData topGD = new GridData(SWT.FILL, SWT.FILL, true, false);
+        if (!isUml) {
+            topGD.exclude = true;
+            topSection.setVisible(false);
+        }
+        topSection.setLayoutData(topGD);
+
+        createEntrySection(topSection);
+        createLanguageSection(topSection);
         createCodeSection(main);
 
         if (!entries.isEmpty()) {
-            entryViewer.getTable().select(0);
+            if (entryViewer != null && !entryViewer.getTable().isDisposed()) {
+                entryViewer.getTable().select(0);
+            }
             loadEntry(0);
         }
         updateButtonStates();

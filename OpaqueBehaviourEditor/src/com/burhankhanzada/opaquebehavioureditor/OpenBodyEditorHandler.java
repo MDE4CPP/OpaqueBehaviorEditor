@@ -120,7 +120,7 @@ public class OpenBodyEditorHandler extends AbstractHandler {
 
         // ---- 4. Open the Editor Dialog ----
         OpaqueBehaviorBodyDialog dialog =
-                new OpaqueBehaviorBodyDialog(shell, bodies, languages, name, contextTypes, dictionary, selectionProvider);
+                new OpaqueBehaviorBodyDialog(shell, bodies, languages, name, contextTypes, dictionary, selectionProvider, isUml);
 
         if (dialog.open() != Window.OK) {
             return null;

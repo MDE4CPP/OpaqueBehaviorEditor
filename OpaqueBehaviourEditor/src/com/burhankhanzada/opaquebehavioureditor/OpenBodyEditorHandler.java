@@ -1,18 +1,11 @@
 package com.burhankhanzada.opaquebehavioureditor;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.Map;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.edit.domain.AdapterFactoryEditingDomain;
-import org.eclipse.emf.edit.domain.EditingDomain;
-import org.eclipse.emf.edit.command.ChangeCommand;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
@@ -21,13 +14,11 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.handlers.HandlerUtil;
-import org.eclipse.uml2.uml.OpaqueBehavior;
 
-import com.burhankhanzada.opaquebehavioureditor.markers.MarkerManager;
-import com.burhankhanzada.opaquebehavioureditor.ui.OpaqueBehaviorBodyDialog;
+import com.burhankhanzada.opaquebehavioureditor.model.IModelAdapter;
+import com.burhankhanzada.opaquebehavioureditor.model.ModelAdapterFactory;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
-import com.burhankhanzada.opaquebehavioureditor.model.UmlModelHarvester;
-import com.burhankhanzada.opaquebehavioureditor.model.EcoreModelHarvester;
+import com.burhankhanzada.opaquebehavioureditor.ui.OpaqueBehaviorBodyDialog;
 
 /**
  * Command handler that opens the {@link OpaqueBehaviorBodyDialog}
@@ -61,37 +52,9 @@ public class OpenBodyEditorHandler extends AbstractHandler {
 
         Object element = structured.getFirstElement();
 
-        List<String> bodies    = new ArrayList<>();
-        List<String> languages = new ArrayList<>();
-        String       name      = "Ecore Annotation Body";
-        EObject      emfElement = null;
-        boolean      isUml     = false;
-
-        if (element instanceof OpaqueBehavior behavior) {
-            bodies.addAll(behavior.getBodies());
-            languages.addAll(behavior.getLanguages());
-            name = behavior.getName();
-            emfElement = behavior;
-            isUml = true;
-        } else if (element instanceof Map.Entry<?,?> mapEntry) {
-            Object key = mapEntry.getKey();
-            Object value = mapEntry.getValue();
-            if (value == null || value instanceof String) {
-                if (value != null) {
-                    bodies.add((String) value);
-                } else {
-                    bodies.add("");
-                }
-                languages.add("C++");
-                emfElement = (element instanceof EObject eObj) ? eObj : null;
-                isUml = false;
-                name = "Ecore Annotation (" + key + ")";
-            } else {
-                MessageDialog.openWarning(shell, "Body Editor",
-                        "The selected Map Entry value is not a String.\nKey is: " + key);
-                return null;
-            }
-        } else {
+        // ---- 2. Create Adapter ----
+        IModelAdapter adapter = ModelAdapterFactory.createAdapter(element);
+        if (adapter == null) {
             MessageDialog.openWarning(shell, "Body Editor",
                     "Selected element is neither an OpaqueBehavior nor a valid Map Entry.\n"
                   + "Type: " + element.getClass().getName());
@@ -107,92 +70,27 @@ public class OpenBodyEditorHandler extends AbstractHandler {
         ISelectionProvider selectionProvider = 
             (activePart != null && activePart.getSite() != null) ? activePart.getSite().getSelectionProvider() : null;
 
-        if (isUml) {
-            OpaqueBehavior behavior = (OpaqueBehavior) emfElement;
-            if (behavior.getModel() != null) {
-                UmlModelHarvester.harvest(behavior, contextTypes, dictionary);
-            }
-        } else {
-            EObject root = org.eclipse.emf.ecore.util.EcoreUtil.getRootContainer(emfElement);
-            if (root instanceof org.eclipse.emf.ecore.EPackage) {
-                EcoreModelHarvester.harvest((org.eclipse.emf.ecore.EPackage) root, contextTypes, dictionary);
-            }
-        }
+        adapter.harvestModelContext(contextTypes, dictionary);
 
         // ---- 4. Open the Editor Dialog ----
-        OpaqueBehaviorBodyDialog dialog =
-                new OpaqueBehaviorBodyDialog(shell, bodies, languages, name, contextTypes, dictionary, selectionProvider, isUml);
-
-        final EObject finalEmfElement = emfElement;
-        final boolean finalIsUml = isUml;
+        OpaqueBehaviorBodyDialog dialog = new OpaqueBehaviorBodyDialog(
+                shell, 
+                adapter.getBodies(), 
+                adapter.getLanguages(), 
+                adapter.getName(), 
+                contextTypes, 
+                dictionary, 
+                selectionProvider, 
+                adapter.isUml()
+        );
 
         Runnable saveAction = () -> {
             // ---- 5. Apply Changes via EMF Command Framework ----
-            List<String> newBodies    = dialog.getBodies();
-            List<String> newLanguages = dialog.getLanguages();
+            adapter.applyChanges(dialog.getBodies(), dialog.getLanguages(), activePart);
 
-            EditingDomain domain = null;
-            if (activePart instanceof org.eclipse.emf.edit.domain.IEditingDomainProvider) {
-                domain = ((org.eclipse.emf.edit.domain.IEditingDomainProvider) activePart).getEditingDomain();
-            }
-            if (domain == null) {
-                domain = AdapterFactoryEditingDomain.getEditingDomainFor(finalEmfElement);
-                EObject parent = finalEmfElement;
-                while (domain == null && parent.eContainer() != null) {
-                    parent = parent.eContainer();
-                    domain = AdapterFactoryEditingDomain.getEditingDomainFor(parent);
-                }
-            }
-
-        if (domain != null) {
-            if (finalIsUml) {
-                ChangeCommand cmd = new ChangeCommand(finalEmfElement) {
-                    @Override
-                    protected void doExecute() {
-                        OpaqueBehavior behavior = (OpaqueBehavior) finalEmfElement;
-                        behavior.getBodies().clear();
-                        behavior.getBodies().addAll(newBodies);
-                        behavior.getLanguages().clear();
-                        behavior.getLanguages().addAll(newLanguages);
-                    }
-                };
-                domain.getCommandStack().execute(cmd);
-            } else {
-                // It's a Map Entry. Update the value using ChangeCommand on the resource to ensure it records EMap changes.
-                org.eclipse.emf.common.notify.Notifier notifier = finalEmfElement.eResource() != null ? finalEmfElement.eResource() : finalEmfElement;
-                ChangeCommand cmd = new ChangeCommand(notifier) {
-                    @Override
-                    protected void doExecute() {
-                        @SuppressWarnings("unchecked")
-                        Map.Entry<String, String> mapEntry = (Map.Entry<String, String>) finalEmfElement;
-                        if (!newBodies.isEmpty()) {
-                            mapEntry.setValue(newBodies.get(0));
-                        }
-                    }
-                };
-                domain.getCommandStack().execute(cmd);
-            }
-        } else {
-            if (finalIsUml) {
-                OpaqueBehavior behavior = (OpaqueBehavior) finalEmfElement;
-                behavior.getBodies().clear();
-                behavior.getBodies().addAll(newBodies);
-                behavior.getLanguages().clear();
-                behavior.getLanguages().addAll(newLanguages);
-            } else {
-                @SuppressWarnings("unchecked")
-                Map.Entry<String, String> mapEntry = (Map.Entry<String, String>) finalEmfElement;
-                if (!newBodies.isEmpty()) {
-                    mapEntry.setValue(newBodies.get(0));
-                }
-            }
-        }
-
-        // ---- 6. Update Eclipse IMarkers for validation errors ----
-        if (finalIsUml) {
-            MarkerManager.updateMarkers((OpaqueBehavior) finalEmfElement, dialog.getBodies(), dialog.getLanguages(), dictionary);
-        }
-        }; // End saveAction
+            // ---- 6. Update Eclipse IMarkers for validation errors ----
+            adapter.updateMarkers(dialog.getBodies(), dialog.getLanguages(), dictionary);
+        };
 
         dialog.setSaveAction(saveAction);
 

@@ -4,68 +4,36 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-
-import org.eclipse.jface.text.Document;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.viewers.ISelectionProvider;
-import org.eclipse.jface.text.source.SourceViewer;
-
-import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.viewers.TableViewer;
-
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
-import com.burhankhanzada.opaquebehavioureditor.editor.text.AutoFormatter;
-import com.burhankhanzada.opaquebehavioureditor.editor.ui.CodeCompletionProvider;
-import com.burhankhanzada.opaquebehavioureditor.editor.core.CodeEditorConfigurator;
-import com.burhankhanzada.opaquebehavioureditor.editor.text.CodeTranslator;
-import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
-import com.burhankhanzada.opaquebehavioureditor.editor.highlighting.SemanticHighlighter;
 import com.burhankhanzada.opaquebehavioureditor.model.BodyEntry;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
-import com.burhankhanzada.opaquebehavioureditor.model.ModelValidator;
 
 /**
  * Dialog for editing the body entries of a UML OpaqueBehaviour.
- * Uses {@link StyledText} with {@link SyntaxHighlighter} for
- * keyword-based syntax highlighting — no JFace Text dependency.
+ * Refactored to delegate to BodyListComposite and CodeEditorComposite.
  */
 public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
 
     private List<BodyEntry> entries = new ArrayList<>();
     private final String behaviourName;
-    private int selectedIndex = -1;
+    
+    private BodyListComposite bodyList;
+    private CodeEditorComposite codeEditor;
 
-    private TableViewer entryViewer;
-    private SourceViewer sourceViewer;
-    private StyledText codeText;
-    private Combo languageCombo;
-    private Button addButton;
-    private Button removeButton;
-    private Button upButton;
-    private Button downButton;
-    private CodeCompletionProvider completionProvider;
     private final ModelDictionary dictionary;
     private final ISelectionProvider selectionProvider;
-    
-    private final SemanticHighlighter semanticHighlighter;
-    private final ModelValidator modelValidator;
-    private final CodeEditorConfigurator editorConfigurator;
     private Runnable saveAction;
 
-    private boolean suppressListener = false;
     private final boolean isUml;
 
     public OpaqueBehaviorBodyDialog(Shell parentShell,
@@ -82,9 +50,6 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
         this.dictionary = dictionary;
         this.selectionProvider = selectionProvider;
         this.isUml = isUml;
-        this.semanticHighlighter = new SemanticHighlighter(dictionary);
-        this.modelValidator = new ModelValidator(dictionary);
-        this.editorConfigurator = new CodeEditorConfigurator(this.semanticHighlighter, this.modelValidator);
 
         for (int i = 0; i < bodies.size(); i++) {
             String lang = (i < languages.size()) ? languages.get(i) : "";
@@ -148,273 +113,74 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
         setMessage(behaviourName != null && !behaviourName.isBlank()
                 ? "Editing body of: " + behaviourName
                 : "Edit body entries of the selected OpaqueBehaviour");
-
+        
         Composite main = new Composite(area, SWT.NONE);
         main.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         main.setLayout(new GridLayout(1, false));
 
-        Composite topSection = new Composite(main, SWT.NONE);
-        GridLayout topLayout = new GridLayout(1, false);
-        topLayout.marginWidth = 0;
-        topLayout.marginHeight = 0;
-        topSection.setLayout(topLayout);
-        
+        // 1. Top Section (List of bodies)
+        bodyList = new BodyListComposite(main, SWT.NONE, entries);
         GridData topGD = new GridData(SWT.FILL, SWT.FILL, true, false);
         if (!isUml) {
             topGD.exclude = true;
-            topSection.setVisible(false);
+            bodyList.setVisible(false);
         }
-        topSection.setLayoutData(topGD);
+        bodyList.setLayoutData(topGD);
 
-        createEntrySection(topSection);
-        createLanguageSection(topSection);
-        createCodeSection(main);
+        // 2. Bottom Section (Code editor)
+        codeEditor = new CodeEditorComposite(main, SWT.NONE, dictionary, selectionProvider);
+        codeEditor.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        codeEditor.setSaveAction(saveAction);
 
-        if (!entries.isEmpty()) {
-            if (entryViewer != null && !entryViewer.getTable().isDisposed()) {
-                entryViewer.getTable().select(0);
+        // --- Wiring ---
+        bodyList.setSelectionListener(index -> {
+            if (index >= 0 && index < entries.size()) {
+                codeEditor.loadEntry(entries.get(index));
+            } else {
+                codeEditor.loadEntry(null);
             }
-            loadEntry(0);
+        });
+
+        bodyList.setListModificationListener(() -> {
+            // Nothing extra to do, BodyListComposite handles viewer updates
+        });
+
+        codeEditor.setChangeListener((lang, body) -> {
+            int sel = bodyList.getSelectedIndex();
+            if (sel >= 0 && sel < entries.size()) {
+                BodyEntry entry = entries.get(sel);
+                entry.language = lang;
+                entry.body = body;
+                bodyList.refresh();
+            }
+        });
+
+        // Initialize state
+        if (!entries.isEmpty()) {
+            bodyList.selectEntry(0);
+            codeEditor.loadEntry(entries.get(0));
+        } else {
+            codeEditor.loadEntry(null);
         }
-        updateButtonStates();
 
         return area;
     }
 
     @Override
     protected void okPressed() {
-        commitCurrentEditor();
+        // Committing is now handled dynamically by listeners, 
+        // but if we ever need a forced flush we can do it here.
         super.okPressed();
     }
 
     @Override
     public boolean close() {
-        if (editorConfigurator != null) {
-            editorConfigurator.dispose();
+        if (codeEditor != null) {
+            codeEditor.dispose();
         }
-        if (completionProvider != null) {
-            completionProvider.dispose();
+        if (bodyList != null) {
+            bodyList.dispose();
         }
         return super.close();
-    }
-
-    // ---- UI construction ----
-
-    private void createEntrySection(Composite parent) {
-        Label lbl = new Label(parent, SWT.NONE);
-        lbl.setText("Body entries:");
-
-        Composite row = new Composite(parent, SWT.NONE);
-        row.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-        row.setLayout(new GridLayout(2, false));
-
-        entryViewer = new TableViewer(row, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
-        GridData tvGD = new GridData(SWT.FILL, SWT.FILL, true, true);
-        tvGD.heightHint = 90;
-        entryViewer.getTable().setLayoutData(tvGD);
-        entryViewer.setContentProvider(ArrayContentProvider.getInstance());
-        entryViewer.setLabelProvider(new BodyEntryLabelProvider(entries));
-        entryViewer.setInput(entries);
-        entryViewer.addSelectionChangedListener(event -> {
-            BodyEntry sel = (BodyEntry) event.getStructuredSelection().getFirstElement();
-            if (sel != null) {
-                int idx = entries.indexOf(sel);
-                if (idx != selectedIndex) {
-                    commitCurrentEditor();
-                    loadEntry(idx);
-                }
-            }
-        });
-
-        Composite btnCol = new Composite(row, SWT.NONE);
-        btnCol.setLayout(new GridLayout(1, true));
-        btnCol.setLayoutData(new GridData(SWT.CENTER, SWT.TOP, false, false));
-
-        addButton    = ThemeUtils.createPushButton(btnCol, "Add");
-        removeButton = ThemeUtils.createPushButton(btnCol, "Remove");
-        upButton     = ThemeUtils.createPushButton(btnCol, "Up");
-        downButton   = ThemeUtils.createPushButton(btnCol, "Down");
-
-        addButton.addListener(SWT.Selection, e -> onAdd());
-        removeButton.addListener(SWT.Selection, e -> onRemove());
-        upButton.addListener(SWT.Selection, e -> onMove(-1));
-        downButton.addListener(SWT.Selection, e -> onMove(1));
-    }
-
-    private void createLanguageSection(Composite parent) {
-        Composite row = new Composite(parent, SWT.NONE);
-        row.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        row.setLayout(new GridLayout(6, false));
-
-        Label lbl = new Label(row, SWT.NONE);
-        lbl.setText("Language:");
-
-        languageCombo = new Combo(row, SWT.DROP_DOWN | SWT.READ_ONLY);
-        languageCombo.setItems(LanguageMapping.getAllLanguageNames());
-        languageCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        if (ThemeUtils.isDarkTheme(parent)) ThemeUtils.fixComboDarkTheme(languageCombo);
-        
-        languageCombo.addModifyListener(e -> {
-            if (selectedIndex >= 0 && selectedIndex < entries.size() && !suppressListener) {
-                entries.get(selectedIndex).language = languageCombo.getText();
-                editorConfigurator.updateSyntaxLanguage(languageCombo.getText(), codeText);
-                if (completionProvider != null) completionProvider.setLanguage(languageCombo.getText());
-                entryViewer.refresh();
-            }
-        });
-
-        Button formatBtn = new Button(row, SWT.PUSH);
-        formatBtn.setText("Format Code");
-        formatBtn.addListener(SWT.Selection, e -> {
-            if (codeText != null && !codeText.isDisposed()) {
-                String formatted = AutoFormatter.format(codeText.getText(), languageCombo.getText());
-                codeText.setText(formatted);
-            }
-        });
-
-        Label transLbl = new Label(row, SWT.NONE);
-        transLbl.setText("  Translate to:");
-
-        Combo targetLanguageCombo = new Combo(row, SWT.DROP_DOWN | SWT.READ_ONLY);
-        targetLanguageCombo.setItems(LanguageMapping.getAllLanguageNames());
-        if (targetLanguageCombo.getItemCount() > 0) targetLanguageCombo.select(0);
-        if (ThemeUtils.isDarkTheme(parent)) ThemeUtils.fixComboDarkTheme(targetLanguageCombo);
-
-        Button translateBtn = new Button(row, SWT.PUSH);
-        translateBtn.setText("Translate");
-        translateBtn.addListener(SWT.Selection, e -> {
-            if (codeText != null && !codeText.isDisposed()) {
-                String sourceLang = languageCombo.getText();
-                String targetLang = targetLanguageCombo.getText();
-                String translated = CodeTranslator.translate(codeText.getText(), sourceLang, targetLang);
-                
-                // Auto-format the translated code using the target language's rules
-                String formatted = AutoFormatter.format(translated, targetLang);
-                
-                codeText.setText(formatted);
-                languageCombo.setText(targetLang); // Update main language combo
-            }
-        });
-    }
-
-    /**
-     * Creates the code editor section containing a StyledText widget wrapped in a SourceViewer.
-     * This avoids heavy JFace Text dependencies while still allowing TM4E integration.
-     */
-    private void createCodeSection(Composite parent) {
-        Label lbl = new Label(parent, SWT.NONE);
-        lbl.setText("Body code:");
-
-        sourceViewer = new SourceViewer(parent, null, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
-        sourceViewer.setDocument(new Document(""));
-        codeText = sourceViewer.getTextWidget();
-
-        GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
-        gd.heightHint = 350;
-        gd.widthHint  = 600;
-        codeText.setLayoutData(gd);
-
-        editorConfigurator.configure(parent, sourceViewer);
-
-        // Code Completion
-        completionProvider = new CodeCompletionProvider(codeText, "", dictionary);
-        completionProvider.setHyperlinkElements(selectionProvider);
-
-        // Re-highlight on every text change
-        codeText.addModifyListener(e -> {
-            if (!suppressListener) {
-                if (selectedIndex >= 0 && selectedIndex < entries.size()) {
-                    entries.get(selectedIndex).body = codeText.getText();
-                    entryViewer.update(entries.get(selectedIndex), null);
-                }
-            }
-        });
-
-        // Quick Save (Cmd+S / Ctrl+S)
-        codeText.addVerifyKeyListener(e -> {
-            boolean isCtrl = (e.stateMask & SWT.MOD1) != 0;
-            if (isCtrl && e.keyCode == 's') {
-                commitCurrentEditor();
-                if (saveAction != null) {
-                    saveAction.run();
-                }
-                e.doit = false;
-            }
-        });
-    }
-
-    // ---- Entry operations ----
-
-    private void onAdd() {
-        commitCurrentEditor();
-        BodyEntry newEntry = new BodyEntry("CPP", "");
-        entries.add(newEntry);
-        entryViewer.refresh();
-        entryViewer.setSelection(new StructuredSelection(newEntry), true);
-        loadEntry(entries.size() - 1);
-    }
-
-    private void onRemove() {
-        if (selectedIndex < 0 || selectedIndex >= entries.size()) return;
-        entries.remove(selectedIndex);
-        entryViewer.refresh();
-        if (entries.isEmpty()) {
-            selectedIndex = -1;
-            suppressListener = true;
-            codeText.setText("");
-            languageCombo.setText("");
-            suppressListener = false;
-        } else {
-            int newIdx = Math.min(selectedIndex, entries.size() - 1);
-            entryViewer.getTable().select(newIdx);
-            loadEntry(newIdx);
-        }
-    }
-
-    private void onMove(int direction) {
-        if (selectedIndex < 0) return;
-        int target = selectedIndex + direction;
-        if (target < 0 || target >= entries.size()) return;
-        commitCurrentEditor();
-        BodyEntry entry = entries.remove(selectedIndex);
-        entries.add(target, entry);
-        selectedIndex = target;
-        entryViewer.refresh();
-        entryViewer.getTable().select(target);
-        updateButtonStates();
-    }
-
-    // ---- Sync ----
-
-    private void commitCurrentEditor() {
-        if (selectedIndex >= 0 && selectedIndex < entries.size() && codeText != null) {
-            entries.get(selectedIndex).body = codeText.getText();
-        }
-    }
-
-    private void loadEntry(int index) {
-        selectedIndex = index;
-        if (index < 0 || index >= entries.size()) return;
-        BodyEntry entry = entries.get(index);
-        
-        editorConfigurator.updateSyntaxLanguage(entry.language, codeText);
-        if (completionProvider != null) completionProvider.setLanguage(entry.language);
-
-        suppressListener = true;
-        try {
-            sourceViewer.getDocument().set(entry.body);
-            languageCombo.setText(entry.language);
-        } finally {
-            suppressListener = false;
-        }
-        
-        updateButtonStates();
-    }
-
-    private void updateButtonStates() {
-        boolean hasSel = selectedIndex >= 0;
-        removeButton.setEnabled(hasSel);
-        upButton.setEnabled(hasSel && selectedIndex > 0);
-        downButton.setEnabled(hasSel && selectedIndex < entries.size() - 1);
     }
 }

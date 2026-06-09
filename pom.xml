@@ -14,10 +14,10 @@
     </properties>
 
     <modules>
-        <module>com.burhankhanzada.opaquebehavioureditor</module>
-        <module>com.burhankhanzada.opaquebehavioureditor.tests</module>
-        <module>com.burhankhanzada.opaquebehavioureditor.feature</module>
-        <module>com.burhankhanzada.opaquebehavioureditor.repository</module>
+        <module>OpaqueBehaviourEditor</module>
+        <module>OpaqueBehaviourEditor.tests</module>
+        <module>OpaqueBehaviourEditor.feature</module>
+        <module>OpaqueBehaviourEditor.repository</module>
     </modules>
 
     <repositories>

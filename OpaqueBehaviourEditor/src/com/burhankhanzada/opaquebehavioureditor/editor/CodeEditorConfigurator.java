@@ -111,6 +111,12 @@ public class CodeEditorConfigurator {
             } else if (isCtrl && e.keyCode == 'd') {
                 deleteLine(sourceViewer);
                 e.doit = false;
+            } else if (isCtrl && e.keyCode == 'l') {
+                goToLine(sourceViewer);
+                e.doit = false;
+            } else if (isCtrl && isAlt && e.keyCode == SWT.ARROW_DOWN) {
+                duplicateLine(sourceViewer);
+                e.doit = false;
             } else if (e.keyCode == SWT.TAB) {
                 if (isShift) {
                     sourceViewer.doOperation(org.eclipse.jface.text.ITextOperationTarget.SHIFT_LEFT);
@@ -171,6 +177,67 @@ public class CodeEditorConfigurator {
                 ((org.eclipse.jface.text.ITextViewerExtension) sourceViewer).getRewriteTarget().endCompoundChange();
             }
         } catch (Exception e) {}
+    }
+
+    private void duplicateLine(SourceViewer sourceViewer) {
+        org.eclipse.jface.text.IDocument doc = sourceViewer.getDocument();
+        org.eclipse.swt.graphics.Point sel = sourceViewer.getTextWidget().getSelection();
+        try {
+            int startLine = doc.getLineOfOffset(sel.x);
+            int endLine = doc.getLineOfOffset(sel.y > sel.x ? sel.y - 1 : sel.x);
+            
+            int startOffset = doc.getLineOffset(startLine);
+            int endOffset = doc.getLength();
+            if (endLine < doc.getNumberOfLines() - 1) {
+                endOffset = doc.getLineOffset(endLine + 1);
+            }
+            
+            String textToDuplicate = doc.get(startOffset, endOffset - startOffset);
+            
+            if (endLine == doc.getNumberOfLines() - 1) {
+                String delim = doc.getLegalLineDelimiters()[0];
+                textToDuplicate = delim + textToDuplicate;
+            }
+            
+            if (sourceViewer instanceof org.eclipse.jface.text.ITextViewerExtension) {
+                ((org.eclipse.jface.text.ITextViewerExtension) sourceViewer).getRewriteTarget().beginCompoundChange();
+            }
+            doc.replace(endOffset, 0, textToDuplicate);
+            if (sourceViewer instanceof org.eclipse.jface.text.ITextViewerExtension) {
+                ((org.eclipse.jface.text.ITextViewerExtension) sourceViewer).getRewriteTarget().endCompoundChange();
+            }
+            
+            sourceViewer.getTextWidget().setSelection(endOffset, endOffset + textToDuplicate.length());
+        } catch (Exception e) {}
+    }
+
+    private void goToLine(SourceViewer sourceViewer) {
+        org.eclipse.swt.widgets.Shell shell = sourceViewer.getTextWidget().getShell();
+        org.eclipse.jface.dialogs.InputDialog dialog = new org.eclipse.jface.dialogs.InputDialog(
+            shell, "Go to Line", "Enter line number (1 - " + sourceViewer.getDocument().getNumberOfLines() + "):", "",
+            new org.eclipse.jface.dialogs.IInputValidator() {
+                @Override
+                public String isValid(String newText) {
+                    try {
+                        int line = Integer.parseInt(newText);
+                        if (line < 1 || line > sourceViewer.getDocument().getNumberOfLines()) {
+                            return "Line number out of range.";
+                        }
+                        return null;
+                    } catch (NumberFormatException e) {
+                        return "Please enter a valid number.";
+                    }
+                }
+            });
+            
+        if (dialog.open() == org.eclipse.jface.window.Window.OK) {
+            try {
+                int line = Integer.parseInt(dialog.getValue()) - 1;
+                int offset = sourceViewer.getDocument().getLineOffset(line);
+                sourceViewer.getTextWidget().setSelection(offset);
+                sourceViewer.revealRange(offset, 0);
+            } catch (Exception ex) {}
+        }
     }
 
     private void zoomIn() {

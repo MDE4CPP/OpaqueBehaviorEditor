@@ -62,8 +62,6 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
         this.saveAction = saveAction;
     }
 
-    // ---- Results ----
-
     public List<String> getBodies() {
         List<String> result = new ArrayList<>(entries.size());
         for (BodyEntry e : entries) result.add(e.body);
@@ -75,8 +73,6 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
         for (BodyEntry e : entries) result.add(e.language);
         return result;
     }
-
-    // ---- Dialog lifecycle ----
 
     @Override
     protected void configureShell(Shell shell) {
@@ -119,7 +115,6 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
         main.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         main.setLayout(new GridLayout(1, false));
 
-        // 1. Top Section (List of bodies)
         bodyList = new BodyListComposite(main, SWT.NONE, entries);
         GridData topGD = new GridData(SWT.FILL, SWT.FILL, true, false);
         if (!isUml) {
@@ -128,12 +123,10 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
         }
         bodyList.setLayoutData(topGD);
 
-        // 2. Bottom Section (Code editor)
         codeEditor = new CodeEditorComposite(main, SWT.NONE, dictionary, selectionProvider);
         codeEditor.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         codeEditor.setSaveAction(saveAction);
 
-        // --- Wiring ---
         bodyList.setSelectionListener(index -> {
             if (index >= 0 && index < entries.size()) {
                 codeEditor.loadEntry(entries.get(index));
@@ -142,9 +135,7 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
             }
         });
 
-        bodyList.setListModificationListener(() -> {
-            // Nothing extra to do, BodyListComposite handles viewer updates
-        });
+
 
         codeEditor.setChangeListener((lang, body) -> {
             int sel = bodyList.getSelectedIndex();
@@ -156,7 +147,6 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
             }
         });
 
-        // Initialize state
         if (!entries.isEmpty()) {
             bodyList.selectEntry(0);
             codeEditor.loadEntry(entries.get(0));
@@ -167,12 +157,6 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
         return area;
     }
 
-    @Override
-    protected void okPressed() {
-        // Committing is now handled dynamically by listeners, 
-        // but if we ever need a forced flush we can do it here.
-        super.okPressed();
-    }
 
     @Override
     public boolean close() {

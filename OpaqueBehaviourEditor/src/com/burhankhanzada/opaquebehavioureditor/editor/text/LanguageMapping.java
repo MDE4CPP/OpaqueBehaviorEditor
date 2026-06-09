@@ -22,7 +22,6 @@ public final class LanguageMapping {
     private static final Map<String, LanguageDef> LANGUAGES = new LinkedHashMap<>();
 
     static {
-        // ---- C ----
         LANGUAGES.put(LANG_C, new LanguageDef(LANG_C, "source.c", ".c",
             new String[] {
                 "auto", "break", "case", "char", "const", "continue",
@@ -43,7 +42,6 @@ public final class LanguageMapping {
             },
             "//", "/*", "*/", "#"));
 
-        // ---- CPP ----
         LANGUAGES.put(LANG_CPP, new LanguageDef(LANG_CPP, "source.cpp", ".cpp",
             new String[] {
                 "alignas", "alignof", "and", "and_eq", "asm", "auto",
@@ -74,7 +72,6 @@ public final class LanguageMapping {
             },
             "//", "/*", "*/", "#"));
 
-        // ---- Java ----
         LANGUAGES.put(LANG_JAVA, new LanguageDef(LANG_JAVA, "source.java", ".java",
             new String[] {
                 "abstract", "assert", "boolean", "break", "byte", "case",

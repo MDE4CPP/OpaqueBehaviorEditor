@@ -43,7 +43,6 @@ public class OpenBodyEditorHandler extends AbstractHandler {
     }
 
     private Object doExecute(ExecutionEvent event, Shell shell) {
-        // ---- 1. Resolve Selection ----
         ISelection selection = HandlerUtil.getCurrentSelection(event);
         if (!(selection instanceof IStructuredSelection structured) || structured.isEmpty()) {
             MessageDialog.openInformation(shell, StringConstants.POPUP_TITLE_INFO, StringConstants.POPUP_MSG_NO_SELECTION);
@@ -52,7 +51,6 @@ public class OpenBodyEditorHandler extends AbstractHandler {
 
         Object element = structured.getFirstElement();
 
-        // ---- 2. Create Adapter ----
         IModelAdapter adapter = ModelAdapterFactory.createAdapter(element);
         if (adapter == null) {
             MessageDialog.openWarning(shell, StringConstants.POPUP_TITLE_INFO,
@@ -60,7 +58,6 @@ public class OpenBodyEditorHandler extends AbstractHandler {
             return null;
         }
 
-        // ---- 3. Collect Model Context Types and Completion Words ----
         Set<String> contextTypes = new HashSet<>();
         ModelDictionary dictionary = new ModelDictionary();
         dictionary.autocompleteWords.add("factory");
@@ -71,7 +68,6 @@ public class OpenBodyEditorHandler extends AbstractHandler {
 
         adapter.harvestModelContext(contextTypes, dictionary);
 
-        // ---- 4. Open the Editor Dialog ----
         OpaqueBehaviorBodyDialog dialog = new OpaqueBehaviorBodyDialog(
                 shell, 
                 adapter.getBodies(), 
@@ -84,10 +80,7 @@ public class OpenBodyEditorHandler extends AbstractHandler {
         );
 
         Runnable saveAction = () -> {
-            // ---- 5. Apply Changes via EMF Command Framework ----
             adapter.applyChanges(dialog.getBodies(), dialog.getLanguages(), activePart);
-
-            // ---- 6. Update Eclipse IMarkers for validation errors ----
             adapter.updateMarkers(dialog.getBodies(), dialog.getLanguages(), dictionary);
         };
 

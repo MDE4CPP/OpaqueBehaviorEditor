@@ -45,7 +45,6 @@ public class CodeEditorComposite extends Composite {
         
         setLayout(new GridLayout(1, false));
         
-        // --- Language Section ---
         Composite row = new Composite(this, SWT.NONE);
         row.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         row.setLayout(new GridLayout(6, false));
@@ -97,8 +96,6 @@ public class CodeEditorComposite extends Composite {
                 languageCombo.setText(targetLang); 
             }
         });
-        
-        // --- Code Section ---
         Label codeLbl = new Label(this, SWT.NONE);
         codeLbl.setText(StringConstants.LBL_BODY_CODE);
 

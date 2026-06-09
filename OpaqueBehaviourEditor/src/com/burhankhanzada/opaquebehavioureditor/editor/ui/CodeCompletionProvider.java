@@ -97,14 +97,9 @@ public class CodeCompletionProvider {
         dismissPopup();
     }
 
-    /** Clean up resources. */
     public void dispose() {
         dismissPopup();
     }
-
-    // ------------------------------------------------------------------
-    // Listener setup
-    // ------------------------------------------------------------------
 
     private void attachListeners() {
         setupKeyboardTriggers();
@@ -152,7 +147,6 @@ public class CodeCompletionProvider {
     }
 
     private void setupAutoPopupTriggers() {
-        // ---- Auto-trigger on typing ----
         styledText.addModifyListener(e -> {
             if (inserting) return;
             String prefix = getCurrentPrefix();
@@ -568,10 +562,6 @@ public class CodeCompletionProvider {
 
         dismissPopup();
     }
-
-    // ------------------------------------------------------------------
-    // Helpers
-    // ------------------------------------------------------------------
 
     private static boolean isDarkTheme(Display display) {
         Color bg = display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);

@@ -86,6 +86,9 @@ public class CodeEditorConfigurator {
             } else if (isCtrl && e.keyCode == 'f') {
                 findDialog.open();
                 e.doit = false;
+            } else if (isCtrl && e.keyCode == '/') {
+                toggleComments(sourceViewer);
+                e.doit = false;
             }
         });
     }
@@ -327,5 +330,57 @@ public class CodeEditorConfigurator {
             if (matcher != null) matcher.dispose();
             if (painter != null) painter.deactivate(true);
         });
+    }
+
+    private void toggleComments(SourceViewer sourceViewer) {
+        org.eclipse.jface.text.IDocument doc = sourceViewer.getDocument();
+        org.eclipse.swt.graphics.Point sel = sourceViewer.getTextWidget().getSelection();
+        try {
+            int startLine = doc.getLineOfOffset(sel.x);
+            int endLine = doc.getLineOfOffset(sel.y > sel.x ? sel.y - 1 : sel.x);
+            
+            boolean allCommented = true;
+            for (int i = startLine; i <= endLine; i++) {
+                org.eclipse.jface.text.IRegion lineRegion = doc.getLineInformation(i);
+                String line = doc.get(lineRegion.getOffset(), lineRegion.getLength());
+                if (!line.trim().isEmpty() && !line.trim().startsWith("//")) {
+                    allCommented = false;
+                    break;
+                }
+            }
+            
+            if (sourceViewer instanceof org.eclipse.jface.text.ITextViewerExtension) {
+                ((org.eclipse.jface.text.ITextViewerExtension) sourceViewer).getRewriteTarget().beginCompoundChange();
+            }
+            
+            for (int i = startLine; i <= endLine; i++) {
+                org.eclipse.jface.text.IRegion lineRegion = doc.getLineInformation(i);
+                String line = doc.get(lineRegion.getOffset(), lineRegion.getLength());
+                if (allCommented) {
+                    int idx = line.indexOf("//");
+                    if (idx != -1) {
+                        doc.replace(lineRegion.getOffset() + idx, 2, "");
+                    }
+                } else {
+                    doc.replace(lineRegion.getOffset(), 0, "//");
+                }
+            }
+            
+            if (sourceViewer instanceof org.eclipse.jface.text.ITextViewerExtension) {
+                ((org.eclipse.jface.text.ITextViewerExtension) sourceViewer).getRewriteTarget().endCompoundChange();
+            }
+            
+            int newStart = doc.getLineOffset(startLine);
+            int newEnd;
+            if (endLine < doc.getNumberOfLines() - 1) {
+                newEnd = doc.getLineOffset(endLine + 1) - doc.getLineDelimiter(endLine).length();
+            } else {
+                newEnd = doc.getLength();
+            }
+            sourceViewer.getTextWidget().setSelection(newStart, newEnd);
+            
+        } catch (org.eclipse.jface.text.BadLocationException e) {
+            e.printStackTrace();
+        }
     }
 }

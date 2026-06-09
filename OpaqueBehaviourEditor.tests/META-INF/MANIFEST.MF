@@ -7,3 +7,5 @@ Bundle-Vendor: Custom
 Fragment-Host: com.burhankhanzada.opaquebehavioureditor;bundle-version="1.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Require-Bundle: org.junit;bundle-version="4.13.0"
+Automatic-Module-Name: com.burhankhanzada.opaquebehavioureditor.tests
+

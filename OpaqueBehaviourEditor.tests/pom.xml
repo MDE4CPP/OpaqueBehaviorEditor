@@ -13,6 +13,10 @@
   <artifactId>com.burhankhanzada.opaquebehavioureditor.tests</artifactId>
   <packaging>eclipse-test-plugin</packaging>
 
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
   <build>
     <plugins>
       <plugin>

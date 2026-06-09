@@ -16,8 +16,6 @@ public class AutoFormatter {
      */
     public static String format(String code, String language) {
         if (code == null || code.isBlank()) return "";
-        
-        String lang = language == null ? "" : language.toLowerCase();
 
         StringBuilder result = new StringBuilder();
         int indent = 0;

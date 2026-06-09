@@ -47,14 +47,4 @@
     <persistent value="true" />
   </extension>
 
-  <!-- Editor definition -->
-  <extension point="org.eclipse.ui.editors">
-    <editor
-      id="com.burhankhanzada.opaquebehavioureditor.editor.OpaqueBehaviorEditor"
-      name="OpaqueBehavior Editor"
-      class="com.burhankhanzada.opaquebehavioureditor.ui.OpaqueBehaviorEditor"
-      default="false">
-    </editor>
-  </extension>
-
 </plugin>

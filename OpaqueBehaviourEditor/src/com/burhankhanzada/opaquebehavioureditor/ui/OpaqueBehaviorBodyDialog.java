@@ -57,7 +57,6 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
     private Button upButton;
     private Button downButton;
     private CodeCompletionProvider completionProvider;
-    private final Set<String> contextTypes;
     private final UmlModelDictionary dictionary;
     private final ISelectionProvider selectionProvider;
     
@@ -79,7 +78,6 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
         super(parentShell);
         setShellStyle(getShellStyle() | SWT.RESIZE | SWT.MAX);
         this.behaviourName = name;
-        this.contextTypes = contextTypes;
         this.dictionary = dictionary;
         this.selectionProvider = selectionProvider;
         this.isUml = isUml;

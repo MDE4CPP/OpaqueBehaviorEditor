@@ -9,6 +9,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.internal.cocoa.*;
 
+@SuppressWarnings("restriction")
 public class ThemeUtils {
     
     public static Button createPushButton(Composite parent, String label) {

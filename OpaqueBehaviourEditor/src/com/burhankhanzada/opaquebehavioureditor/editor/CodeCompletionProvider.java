@@ -196,7 +196,7 @@ public class CodeCompletionProvider {
             boolean isMod = (e.stateMask & SWT.MOD1) != 0;
             boolean hasHyperlink = false;
             try {
-                int offset = styledText.getOffsetAtLocation(new Point(e.x, e.y));
+                int offset = styledText.getOffsetAtPoint(new Point(e.x, e.y));
                 String text = styledText.getText();
                 int start = offset;
                 int end = offset;
@@ -249,7 +249,7 @@ public class CodeCompletionProvider {
             public void mouseDown(MouseEvent e) {
                 if ((e.stateMask & SWT.MOD1) != 0 && selectionProvider != null) {
                     try {
-                        int offset = styledText.getOffsetAtLocation(new Point(e.x, e.y));
+                        int offset = styledText.getOffsetAtPoint(new Point(e.x, e.y));
                         String text = styledText.getText();
                         int start = offset;
                         int end = offset;

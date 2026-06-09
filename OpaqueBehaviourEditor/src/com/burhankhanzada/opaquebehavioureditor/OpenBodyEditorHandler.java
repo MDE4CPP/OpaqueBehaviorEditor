@@ -123,28 +123,26 @@ public class OpenBodyEditorHandler extends AbstractHandler {
         OpaqueBehaviorBodyDialog dialog =
                 new OpaqueBehaviorBodyDialog(shell, bodies, languages, name, contextTypes, dictionary, selectionProvider, isUml);
 
-        if (dialog.open() != Window.OK) {
-            return null;
-        }
-
-        // ---- 5. Apply Changes via EMF Command Framework ----
-        List<String> newBodies    = dialog.getBodies();
-        List<String> newLanguages = dialog.getLanguages();
-
-        EditingDomain domain = null;
-        if (activePart instanceof org.eclipse.emf.edit.domain.IEditingDomainProvider) {
-            domain = ((org.eclipse.emf.edit.domain.IEditingDomainProvider) activePart).getEditingDomain();
-        }
-        if (domain == null) {
-            domain = AdapterFactoryEditingDomain.getEditingDomainFor(emfElement);
-            EObject parent = emfElement;
-            while (domain == null && parent.eContainer() != null) {
-                parent = parent.eContainer();
-                domain = AdapterFactoryEditingDomain.getEditingDomainFor(parent);
-            }
-        }
         final EObject finalEmfElement = emfElement;
         final boolean finalIsUml = isUml;
+
+        Runnable saveAction = () -> {
+            // ---- 5. Apply Changes via EMF Command Framework ----
+            List<String> newBodies    = dialog.getBodies();
+            List<String> newLanguages = dialog.getLanguages();
+
+            EditingDomain domain = null;
+            if (activePart instanceof org.eclipse.emf.edit.domain.IEditingDomainProvider) {
+                domain = ((org.eclipse.emf.edit.domain.IEditingDomainProvider) activePart).getEditingDomain();
+            }
+            if (domain == null) {
+                domain = AdapterFactoryEditingDomain.getEditingDomainFor(finalEmfElement);
+                EObject parent = finalEmfElement;
+                while (domain == null && parent.eContainer() != null) {
+                    parent = parent.eContainer();
+                    domain = AdapterFactoryEditingDomain.getEditingDomainFor(parent);
+                }
+            }
 
         if (domain != null) {
             if (finalIsUml) {
@@ -175,15 +173,15 @@ public class OpenBodyEditorHandler extends AbstractHandler {
                 domain.getCommandStack().execute(cmd);
             }
         } else {
-            if (isUml) {
-                OpaqueBehavior behavior = (OpaqueBehavior) emfElement;
+            if (finalIsUml) {
+                OpaqueBehavior behavior = (OpaqueBehavior) finalEmfElement;
                 behavior.getBodies().clear();
                 behavior.getBodies().addAll(newBodies);
                 behavior.getLanguages().clear();
                 behavior.getLanguages().addAll(newLanguages);
             } else {
                 @SuppressWarnings("unchecked")
-                Map.Entry<String, String> mapEntry = (Map.Entry<String, String>) emfElement;
+                Map.Entry<String, String> mapEntry = (Map.Entry<String, String>) finalEmfElement;
                 if (!newBodies.isEmpty()) {
                     mapEntry.setValue(newBodies.get(0));
                 }
@@ -191,8 +189,15 @@ public class OpenBodyEditorHandler extends AbstractHandler {
         }
 
         // ---- 6. Update Eclipse IMarkers for validation errors ----
-        if (isUml) {
-            MarkerManager.updateMarkers((OpaqueBehavior) emfElement, newBodies, newLanguages, dictionary);
+        if (finalIsUml) {
+            MarkerManager.updateMarkers((OpaqueBehavior) finalEmfElement, dialog.getBodies(), dialog.getLanguages(), dictionary);
+        }
+        }; // End saveAction
+
+        dialog.setSaveAction(saveAction);
+
+        if (dialog.open() == Window.OK) {
+            saveAction.run();
         }
 
         return null;

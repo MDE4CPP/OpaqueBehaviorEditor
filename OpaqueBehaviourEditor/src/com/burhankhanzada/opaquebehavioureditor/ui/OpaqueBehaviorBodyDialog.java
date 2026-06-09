@@ -63,6 +63,7 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
     private final SemanticHighlighter semanticHighlighter;
     private final ModelValidator modelValidator;
     private final CodeEditorConfigurator editorConfigurator;
+    private Runnable saveAction;
 
     private boolean suppressListener = false;
     private final boolean isUml;
@@ -89,6 +90,10 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
             String lang = (i < languages.size()) ? languages.get(i) : "";
             entries.add(new BodyEntry(lang, bodies.get(i)));
         }
+    }
+
+    public void setSaveAction(Runnable saveAction) {
+        this.saveAction = saveAction;
     }
 
     // ---- Results ----
@@ -322,6 +327,18 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
                     entries.get(selectedIndex).body = codeText.getText();
                     entryViewer.update(entries.get(selectedIndex), null);
                 }
+            }
+        });
+
+        // Quick Save (Cmd+S / Ctrl+S)
+        codeText.addVerifyKeyListener(e -> {
+            boolean isCtrl = (e.stateMask & SWT.MOD1) != 0;
+            if (isCtrl && e.keyCode == 's') {
+                commitCurrentEditor();
+                if (saveAction != null) {
+                    saveAction.run();
+                }
+                e.doit = false;
             }
         });
     }

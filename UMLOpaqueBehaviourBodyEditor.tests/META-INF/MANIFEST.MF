@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: UML OpaqueBehaviour Body Editor Tests
+Bundle-SymbolicName: UMLOpaqueBehaviourBodyEditor.tests
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: Custom
+Fragment-Host: UMLOpaqueBehaviourBodyEditor;bundle-version="1.0.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-21
+Require-Bundle: org.junit;bundle-version="4.13.0"

@@ -176,6 +176,11 @@ public class CodeEditorConfigurator {
                 public org.eclipse.jface.text.IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
                     return new org.eclipse.jface.text.IAutoEditStrategy[] { new SmartAutoEditStrategy() };
                 }
+                
+                @Override
+                public org.eclipse.jface.text.ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
+                    return new SemanticTextHover(modelValidator.getDictionary());
+                }
             });
         } catch (Throwable t) {
             t.printStackTrace();

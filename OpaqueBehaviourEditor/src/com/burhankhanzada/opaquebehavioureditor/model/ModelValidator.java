@@ -27,6 +27,10 @@ public class ModelValidator {
         this.dictionary = dictionary;
     }
 
+    public ModelDictionary getDictionary() {
+        return dictionary;
+    }
+
     public List<TextRange> validateMemberAccess(String text, LanguageDef currentLangDef) {
         List<TextRange> errors = new ArrayList<>();
         if (currentLangDef == null || !currentLangDef.name.equals("CPP")) {

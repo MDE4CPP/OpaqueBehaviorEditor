@@ -108,6 +108,17 @@ public class CodeEditorConfigurator {
             } else if (isAlt && e.keyCode == 'z') {
                 codeText.setWordWrap(!codeText.getWordWrap());
                 e.doit = false;
+            } else if (isCtrl && e.keyCode == 'd') {
+                deleteLine(sourceViewer);
+                e.doit = false;
+            } else if (e.keyCode == SWT.TAB) {
+                if (isShift) {
+                    sourceViewer.doOperation(org.eclipse.jface.text.ITextOperationTarget.SHIFT_LEFT);
+                    e.doit = false;
+                } else if (codeText.getSelectionCount() > 0) {
+                    sourceViewer.doOperation(org.eclipse.jface.text.ITextOperationTarget.SHIFT_RIGHT);
+                    e.doit = false;
+                }
             }
         });
     }
@@ -131,6 +142,35 @@ public class CodeEditorConfigurator {
                 ((org.eclipse.jface.text.ITextViewerExtension) sourceViewer).getRewriteTarget().endCompoundChange();
             }
         }
+    }
+
+    private void deleteLine(SourceViewer sourceViewer) {
+        org.eclipse.jface.text.IDocument doc = sourceViewer.getDocument();
+        org.eclipse.swt.graphics.Point sel = sourceViewer.getTextWidget().getSelection();
+        try {
+            int startLine = doc.getLineOfOffset(sel.x);
+            int endLine = doc.getLineOfOffset(sel.y > sel.x ? sel.y - 1 : sel.x);
+            
+            int startOffset = doc.getLineOffset(startLine);
+            int endOffset = doc.getLength(); // Default to end of document
+            if (endLine < doc.getNumberOfLines() - 1) {
+                endOffset = doc.getLineOffset(endLine + 1); // Up to the start of the next line
+            } else if (startLine > 0) {
+                // Deleting the last line, try to remove the newline before it instead
+                startOffset = doc.getLineOffset(startLine - 1) + doc.getLineLength(startLine - 1);
+                // Adjust to exclude the \r\n or \n from the previous line? No, just replace from start to end
+                endOffset = doc.getLength();
+                startOffset = doc.getLineOffset(startLine) - doc.getLineDelimiter(startLine - 1).length();
+            }
+            
+            if (sourceViewer instanceof org.eclipse.jface.text.ITextViewerExtension) {
+                ((org.eclipse.jface.text.ITextViewerExtension) sourceViewer).getRewriteTarget().beginCompoundChange();
+            }
+            doc.replace(startOffset, endOffset - startOffset, "");
+            if (sourceViewer instanceof org.eclipse.jface.text.ITextViewerExtension) {
+                ((org.eclipse.jface.text.ITextViewerExtension) sourceViewer).getRewriteTarget().endCompoundChange();
+            }
+        } catch (Exception e) {}
     }
 
     private void zoomIn() {

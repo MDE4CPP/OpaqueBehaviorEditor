@@ -170,6 +170,11 @@ public class CodeEditorConfigurator {
                 public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
                     return tmReconciler;
                 }
+                
+                @Override
+                public org.eclipse.jface.text.IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
+                    return new org.eclipse.jface.text.IAutoEditStrategy[] { new SmartAutoEditStrategy() };
+                }
             });
         } catch (Throwable t) {
             t.printStackTrace();

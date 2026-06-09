@@ -17,6 +17,7 @@ import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
 import com.burhankhanzada.opaquebehavioureditor.model.TextRange;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelValidator;
+import com.burhankhanzada.opaquebehavioureditor.utils.PluginLogger;
 
 public class MarkerManager {
 
@@ -49,7 +50,7 @@ public class MarkerManager {
                 }
             }
         } catch (CoreException e) {
-            e.printStackTrace();
+            PluginLogger.logError("Failed to update model validation markers", e);
         }
     }
 
@@ -59,7 +60,7 @@ public class MarkerManager {
         
         // Extract the problematic text for the error message
         String errorText = body.substring(error.offset, error.offset + error.length);
-        marker.setAttribute(IMarker.MESSAGE, "UML Resolution Error: Unrecognized member '" + errorText + "'");
+        marker.setAttribute(IMarker.MESSAGE, "Resolution Error: Unrecognized member '" + errorText + "'");
         
         // Character bounds for the problem view highlight
         marker.setAttribute(IMarker.CHAR_START, error.offset);

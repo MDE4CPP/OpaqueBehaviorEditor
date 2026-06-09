@@ -14,12 +14,16 @@ public final class LanguageMapping {
         // Utility class
     }
 
+    public static final String LANG_C = "C";
+    public static final String LANG_CPP = "CPP";
+    public static final String LANG_JAVA = "Java";
+
     /** All known language definitions, keyed by canonical name. */
     private static final Map<String, LanguageDef> LANGUAGES = new LinkedHashMap<>();
 
     static {
         // ---- C ----
-        LANGUAGES.put("C", new LanguageDef("C", "source.c", ".c",
+        LANGUAGES.put(LANG_C, new LanguageDef(LANG_C, "source.c", ".c",
             new String[] {
                 "auto", "break", "case", "char", "const", "continue",
                 "default", "do", "double", "else", "enum", "extern",
@@ -40,7 +44,7 @@ public final class LanguageMapping {
             "//", "/*", "*/", "#"));
 
         // ---- CPP ----
-        LANGUAGES.put("CPP", new LanguageDef("CPP", "source.cpp", ".cpp",
+        LANGUAGES.put(LANG_CPP, new LanguageDef(LANG_CPP, "source.cpp", ".cpp",
             new String[] {
                 "alignas", "alignof", "and", "and_eq", "asm", "auto",
                 "bitand", "bitor", "bool", "break", "case", "catch",
@@ -71,7 +75,7 @@ public final class LanguageMapping {
             "//", "/*", "*/", "#"));
 
         // ---- Java ----
-        LANGUAGES.put("Java", new LanguageDef("Java", "source.java", ".java",
+        LANGUAGES.put(LANG_JAVA, new LanguageDef(LANG_JAVA, "source.java", ".java",
             new String[] {
                 "abstract", "assert", "boolean", "break", "byte", "case",
                 "catch", "char", "class", "continue", "default", "do",
@@ -122,9 +126,9 @@ public final class LanguageMapping {
         // Common aliases
         String lower = language.toLowerCase();
         return switch (lower) {
-            case "cpp", "c++", "c++11", "c++14", "c++17", "c++20", "c++23" -> LANGUAGES.get("CPP");
-            case "java" -> LANGUAGES.get("Java");
-            case "c89", "c99", "c11", "c17", "c23" -> LANGUAGES.get("C");
+            case "cpp", "c++", "c++11", "c++14", "c++17", "c++20", "c++23" -> LANGUAGES.get(LANG_CPP);
+            case "java" -> LANGUAGES.get(LANG_JAVA);
+            case "c89", "c99", "c11", "c17", "c23" -> LANGUAGES.get(LANG_C);
             default -> PLAIN_TEXT;
         };
     }

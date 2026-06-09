@@ -7,6 +7,7 @@ import java.util.Set;
 
 import com.burhankhanzada.opaquebehavioureditor.model.TextRange;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping.LanguageDef;
 
 public class SemanticHighlighter {
@@ -31,7 +32,7 @@ public class SemanticHighlighter {
 
     public List<TextRange> getUMLTypeRanges(String text, LanguageDef currentLangDef) {
         List<TextRange> ranges = new ArrayList<>();
-        if (currentLangDef == null || !currentLangDef.name.equals("CPP") || dictionary.typeMembers.isEmpty()) {
+        if (currentLangDef == null || !currentLangDef.name.equals(LanguageMapping.LANG_CPP) || dictionary.typeMembers.isEmpty()) {
             return ranges;
         }
         
@@ -51,7 +52,7 @@ public class SemanticHighlighter {
 
     public List<TextRange> getKeywordRanges(String text, LanguageDef currentLangDef) {
         List<TextRange> ranges = new ArrayList<>();
-        if (currentLangDef == null || !currentLangDef.name.equals("CPP")) return ranges;
+        if (currentLangDef == null || !currentLangDef.name.equals(LanguageMapping.LANG_CPP)) return ranges;
         
         List<TextRange> ignored = getIgnoredRanges(text);
         java.util.regex.Pattern p = java.util.regex.Pattern.compile("\\b([A-Za-z0-9_]+)\\b");
@@ -69,7 +70,7 @@ public class SemanticHighlighter {
 
     public List<TextRange> getVariableRanges(String text, LanguageDef currentLangDef) {
         List<TextRange> ranges = new ArrayList<>();
-        if (currentLangDef == null || !currentLangDef.name.equals("CPP")) return ranges;
+        if (currentLangDef == null || !currentLangDef.name.equals(LanguageMapping.LANG_CPP)) return ranges;
         
         List<TextRange> ignored = getIgnoredRanges(text);
         java.util.regex.Pattern p = java.util.regex.Pattern.compile("\\b([A-Za-z0-9_]+)\\b");
@@ -100,7 +101,7 @@ public class SemanticHighlighter {
 
     public List<TextRange> getMethodRanges(String text, LanguageDef currentLangDef) {
         List<TextRange> ranges = new ArrayList<>();
-        if (currentLangDef == null || !currentLangDef.name.equals("CPP")) return ranges;
+        if (currentLangDef == null || !currentLangDef.name.equals(LanguageMapping.LANG_CPP)) return ranges;
         
         List<TextRange> ignored = getIgnoredRanges(text);
         java.util.regex.Pattern p = java.util.regex.Pattern.compile("\\b([A-Za-z0-9_]+)\\s*\\(");

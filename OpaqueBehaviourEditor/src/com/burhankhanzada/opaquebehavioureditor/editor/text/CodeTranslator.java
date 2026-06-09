@@ -1,5 +1,7 @@
 package com.burhankhanzada.opaquebehavioureditor.editor.text;
 
+import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
+
 /**
  * Utility class to perform best-effort regex-based translation 
  * between supported programming languages.
@@ -25,7 +27,7 @@ public class CodeTranslator {
 
         String result = code;
 
-        if (src.equals("CPP") && tgt.equals("JAVA")) {
+        if (src.equalsIgnoreCase(LanguageMapping.LANG_CPP) && tgt.equalsIgnoreCase(LanguageMapping.LANG_JAVA)) {
             // Complex patterns first before we destroy '::'
             result = result.replaceAll("std::(?:shared|weak|unique)_ptr<\\s*([A-Za-z0-9_]+)\\s*>", "$1");
             result = result.replaceAll("std::string", "String");
@@ -38,7 +40,7 @@ public class CodeTranslator {
             result = result.replaceAll("\\bbool\\b", "boolean");
             result = result.replaceAll("\\bconst\\b", "final");
         } 
-        else if (src.equals("JAVA") && tgt.equals("CPP")) {
+        else if (src.equalsIgnoreCase(LanguageMapping.LANG_JAVA) && tgt.equalsIgnoreCase(LanguageMapping.LANG_CPP)) {
             // Naive assumption: most method calls in MDE4CPP are via pointers
             result = result.replaceAll("\\.", "->");
             result = result.replaceAll("\\bString\\b", "std::string");
@@ -50,7 +52,7 @@ public class CodeTranslator {
             // Wrap capitalized object declarations in std::shared_ptr (e.g. "Library lib =" -> "std::shared_ptr<Library> lib =")
             result = result.replaceAll("\\b([A-Z][A-Za-z0-9_]*)\\s+([a-zA-Z0-9_]+)\\s*=", "std::shared_ptr<$1> $2 =");
         }
-        else if (src.equals("CPP") && tgt.equals("C")) {
+        else if (src.equalsIgnoreCase(LanguageMapping.LANG_CPP) && tgt.equalsIgnoreCase(LanguageMapping.LANG_C)) {
             result = result.replaceAll("std::(?:shared|weak|unique)_ptr<\\s*([A-Za-z0-9_]+)\\s*>", "$1*");
             result = result.replaceAll("std::string", "char*");
             result = result.replaceAll("std::cout\\s*<<\\s*(.*?)\\s*<<\\s*std::endl\\s*;", "printf(\"%d\\\\n\", $1);");
@@ -61,7 +63,7 @@ public class CodeTranslator {
             result = result.replaceAll("\\bclass\\b", "struct");
             result = result.replaceAll("new\\s+([A-Za-z0-9_]+)\\s*\\(\\)", "malloc(sizeof($1))");
         }
-        else if (src.equals("C") && tgt.equals("CPP")) {
+        else if (src.equalsIgnoreCase(LanguageMapping.LANG_C) && tgt.equalsIgnoreCase(LanguageMapping.LANG_CPP)) {
             result = result.replaceAll("char\\*", "std::string");
             result = result.replaceAll("\\bNULL\\b", "nullptr");
             result = result.replaceAll("malloc\\s*\\(\\s*sizeof\\s*\\(\\s*([A-Za-z0-9_]+)\\s*\\)\\s*\\)", "new $1()");
@@ -69,7 +71,7 @@ public class CodeTranslator {
             // Convert C-style pointers of objects to std::shared_ptr (e.g. "Library* lib" -> "std::shared_ptr<Library> lib")
             result = result.replaceAll("\\b([A-Z][A-Za-z0-9_]*)\\s*\\*\\s+([a-zA-Z0-9_]+)", "std::shared_ptr<$1> $2");
         }
-        else if (src.equals("JAVA") && tgt.equals("C")) {
+        else if (src.equalsIgnoreCase(LanguageMapping.LANG_JAVA) && tgt.equalsIgnoreCase(LanguageMapping.LANG_C)) {
             result = result.replaceAll("\\.", "->");
             result = result.replaceAll("System->out->println\\((.*?)\\);", "printf(\"%d\\\\n\", $1);");
             result = result.replaceAll("\\bString\\b", "char*");
@@ -79,7 +81,7 @@ public class CodeTranslator {
             result = result.replaceAll("\\bfalse\\b", "0");
             result = result.replaceAll("new\\s+([A-Za-z0-9_]+)\\s*\\(\\)", "malloc(sizeof($1))");
         }
-        else if (src.equals("C") && tgt.equals("JAVA")) {
+        else if (src.equalsIgnoreCase(LanguageMapping.LANG_C) && tgt.equalsIgnoreCase(LanguageMapping.LANG_JAVA)) {
             result = result.replaceAll("->", ".");
             result = result.replaceAll("char\\*", "String");
             result = result.replaceAll("\\bNULL\\b", "null");

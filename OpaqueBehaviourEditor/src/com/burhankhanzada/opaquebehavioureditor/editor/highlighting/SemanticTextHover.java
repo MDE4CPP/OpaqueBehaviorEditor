@@ -11,7 +11,9 @@ import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 
+import com.burhankhanzada.opaquebehavioureditor.editor.text.TextUtilities;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
+import com.burhankhanzada.opaquebehavioureditor.utils.PluginLogger;
 
 public class SemanticTextHover implements ITextHover {
 
@@ -68,19 +70,17 @@ public class SemanticTextHover implements ITextHover {
     public IRegion getHoverRegion(ITextViewer textViewer, int offset) {
         try {
             org.eclipse.jface.text.IDocument doc = textViewer.getDocument();
-            int start = offset;
-            while (start > 0 && Character.isJavaIdentifierPart(doc.getChar(start - 1))) {
-                start--;
-            }
-            int end = offset;
-            int length = doc.getLength();
-            while (end < length && Character.isJavaIdentifierPart(doc.getChar(end))) {
-                end++;
-            }
+            String text = doc.get();
+            int[] bounds = TextUtilities.getWordBounds(text, offset);
+            int start = bounds[0];
+            int end = bounds[1];
+            
             if (start < end) {
                 return new Region(start, end - start);
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            PluginLogger.logError("Error calculating hover region", e);
+        }
         return null;
     }
 

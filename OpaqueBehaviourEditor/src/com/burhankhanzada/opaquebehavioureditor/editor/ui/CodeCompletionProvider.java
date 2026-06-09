@@ -35,6 +35,8 @@ import com.burhankhanzada.opaquebehavioureditor.editor.text.SnippetLibrary;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.CppExpressionParser;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping.LanguageDef;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.TextUtilities;
+import com.burhankhanzada.opaquebehavioureditor.utils.PluginLogger;
 
 /**
  * Provides code completion for a {@link StyledText} widget.
@@ -185,7 +187,7 @@ public class CodeCompletionProvider {
         // ---- MDE4CPP Smart Pointers: auto '.' to '->' ----
         styledText.addVerifyListener(e -> {
             if (inserting) return;
-            if (e.text.equals(".") && currentLangDef != null && currentLangDef.name.equals("CPP")) {
+            if (e.text.equals(".") && currentLangDef != null && currentLangDef.name.equals(LanguageMapping.LANG_CPP)) {
                 String textBefore = styledText.getText().substring(0, e.start) + ".";
                 String type = CppExpressionParser.resolveContextTypeFromText(textBefore, dictionary, styledText.getText());
                 if (type != null) {
@@ -203,13 +205,13 @@ public class CodeCompletionProvider {
             try {
                 int offset = styledText.getOffsetAtPoint(new Point(e.x, e.y));
                 String text = styledText.getText();
-                int start = offset;
-                int end = offset;
-                while (start > 0 && Character.isJavaIdentifierPart(text.charAt(start - 1))) start--;
-                while (end < text.length() && Character.isJavaIdentifierPart(text.charAt(end))) end++;
+                int[] bounds = TextUtilities.getWordBounds(text, offset);
+                int start = bounds[0];
+                int end = bounds[1];
+                
                 if (start < end) {
                     String word = text.substring(start, end);
-                    String textBefore = text.substring(0, start).stripTrailing();
+                    String textBefore = TextUtilities.getTextBeforeIdentifier(text, offset);
                     
                     EObject hyperlinkObj = resolveHyperlink(word, textBefore);
                     if (hyperlinkObj != null) {
@@ -217,7 +219,7 @@ public class CodeCompletionProvider {
                     }
 
                     String type = resolveVariableType(word);
-                    if (type != null && currentLangDef != null && currentLangDef.name.equals("CPP")) {
+                    if (type != null && currentLangDef != null && currentLangDef.name.equals(LanguageMapping.LANG_CPP)) {
                         styledText.setToolTipText("std::shared_ptr<" + type + ">");
                     } else if (type != null) {
                         styledText.setToolTipText(type);
@@ -228,6 +230,7 @@ public class CodeCompletionProvider {
                     styledText.setToolTipText(null);
                 }
             } catch (IllegalArgumentException ex) {
+                PluginLogger.logWarning("Tooltip calculation failed at hover position");
                 styledText.setToolTipText(null);
             }
 
@@ -256,20 +259,20 @@ public class CodeCompletionProvider {
                     try {
                         int offset = styledText.getOffsetAtPoint(new Point(e.x, e.y));
                         String text = styledText.getText();
-                        int start = offset;
-                        int end = offset;
-                        while (start > 0 && Character.isJavaIdentifierPart(text.charAt(start - 1))) start--;
-                        while (end < text.length() && Character.isJavaIdentifierPart(text.charAt(end))) end++;
+                        int[] bounds = TextUtilities.getWordBounds(text, offset);
+                        int start = bounds[0];
+                        int end = bounds[1];
+                        
                         if (start < end) {
                             String word = text.substring(start, end);
-                            String textBefore = text.substring(0, start).stripTrailing();
+                            String textBefore = TextUtilities.getTextBeforeIdentifier(text, offset);
                             EObject obj = resolveHyperlink(word, textBefore);
                             if (obj != null) {
                                 selectionProvider.setSelection(new StructuredSelection(obj));
                             }
                         }
                     } catch (IllegalArgumentException ex) {
-                        // ignore
+                        PluginLogger.logWarning("Navigation failed at click position");
                     }
                 }
             }
@@ -320,7 +323,7 @@ public class CodeCompletionProvider {
         Set<String> allowedMembers = null;
         
         // Add Snippets at the very top of the list!
-        if (currentLangDef != null && currentLangDef.name.equals("CPP") && !isMemberAccess) {
+        if (currentLangDef != null && currentLangDef.name.equals(LanguageMapping.LANG_CPP) && !isMemberAccess) {
             for (SnippetLibrary.Snippet snip : SnippetLibrary.SNIPPETS) {
                 if (snip.keyword.toLowerCase().startsWith(lower)) {
                     if (!matches.contains(snip.label)) {
@@ -337,7 +340,7 @@ public class CodeCompletionProvider {
             for (Map<String, String> members : dictionary.typeMembers.values()) {
                 allowedMembers.addAll(members.keySet());
             }
-            if (currentLangDef != null && currentLangDef.name.equals("CPP")) {
+            if (currentLangDef != null && currentLangDef.name.equals(LanguageMapping.LANG_CPP)) {
                 for (String m : ModelValidator.COMMON_METHODS) allowedMembers.add(m);
             }
             
@@ -402,11 +405,8 @@ public class CodeCompletionProvider {
     private boolean isMemberAccessContext() {
         int caretOffset = styledText.getCaretOffset();
         String text = styledText.getText();
-        int start = caretOffset;
-        while (start > 0 && Character.isJavaIdentifierPart(text.charAt(start - 1))) {
-            start--;
-        }
-        int ptr = start - 1;
+        int[] bounds = TextUtilities.getWordBounds(text, caretOffset);
+        int ptr = bounds[0] - 1;
         while (ptr >= 0 && Character.isWhitespace(text.charAt(ptr))) ptr--;
         
         if (ptr >= 0 && text.charAt(ptr) == '.') return true;
@@ -417,11 +417,7 @@ public class CodeCompletionProvider {
     private String resolveContextType() {
         int caretOffset = styledText.getCaretOffset();
         String text = styledText.getText();
-        int start = caretOffset;
-        while (start > 0 && Character.isJavaIdentifierPart(text.charAt(start - 1))) {
-            start--;
-        }
-        String textBeforeCaret = text.substring(0, start).stripTrailing();
+        String textBeforeCaret = TextUtilities.getTextBeforeIdentifier(text, caretOffset);
         return CppExpressionParser.resolveContextTypeFromText(textBeforeCaret, dictionary, text);
     }
 
@@ -448,10 +444,8 @@ public class CodeCompletionProvider {
     private String getCurrentPrefix() {
         int caretOffset = styledText.getCaretOffset();
         String text = styledText.getText();
-        int start = caretOffset;
-        while (start > 0 && Character.isJavaIdentifierPart(text.charAt(start - 1))) {
-            start--;
-        }
+        int[] bounds = TextUtilities.getWordBounds(text, caretOffset);
+        int start = bounds[0];
         if (start == caretOffset) return "";
         return text.substring(start, caretOffset);
     }
@@ -460,11 +454,7 @@ public class CodeCompletionProvider {
     private int getPrefixStart() {
         int caretOffset = styledText.getCaretOffset();
         String text = styledText.getText();
-        int start = caretOffset;
-        while (start > 0 && Character.isJavaIdentifierPart(text.charAt(start - 1))) {
-            start--;
-        }
-        return start;
+        return TextUtilities.getWordBounds(text, caretOffset)[0];
     }
 
     // ------------------------------------------------------------------
@@ -554,7 +544,7 @@ public class CodeCompletionProvider {
         inserting = true;
         try {
             SnippetLibrary.Snippet matchedSnippet = null;
-            if (currentLangDef != null && currentLangDef.name.equals("CPP")) {
+            if (currentLangDef != null && currentLangDef.name.equals(LanguageMapping.LANG_CPP)) {
                 for (SnippetLibrary.Snippet s : SnippetLibrary.SNIPPETS) {
                     if (s.label.equals(selected)) {
                         matchedSnippet = s;

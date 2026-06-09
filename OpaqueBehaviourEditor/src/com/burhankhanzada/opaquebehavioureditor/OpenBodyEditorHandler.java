@@ -130,12 +130,15 @@ public class OpenBodyEditorHandler extends AbstractHandler {
         List<String> newLanguages = dialog.getLanguages();
 
         EditingDomain domain = AdapterFactoryEditingDomain.getEditingDomainFor(emfElement);
+        final EObject finalEmfElement = emfElement;
+        final boolean finalIsUml = isUml;
+
         if (domain != null) {
-            org.eclipse.emf.edit.command.ChangeCommand cmd = new org.eclipse.emf.edit.command.ChangeCommand(emfElement) {
+            org.eclipse.emf.edit.command.ChangeCommand cmd = new org.eclipse.emf.edit.command.ChangeCommand(finalEmfElement) {
                 @Override
                 protected void doExecute() {
-                    if (isUml) {
-                        OpaqueBehavior behavior = (OpaqueBehavior) emfElement;
+                    if (finalIsUml) {
+                        OpaqueBehavior behavior = (OpaqueBehavior) finalEmfElement;
                         behavior.getBodies().clear();
                         behavior.getBodies().addAll(newBodies);
                         behavior.getLanguages().clear();
@@ -143,7 +146,7 @@ public class OpenBodyEditorHandler extends AbstractHandler {
                     } else {
                         // It's a Map Entry. Update the value.
                         @SuppressWarnings("unchecked")
-                        java.util.Map.Entry<String, String> mapEntry = (java.util.Map.Entry<String, String>) emfElement;
+                        java.util.Map.Entry<String, String> mapEntry = (java.util.Map.Entry<String, String>) finalEmfElement;
                         if (!newBodies.isEmpty()) {
                             mapEntry.setValue(newBodies.get(0));
                         }

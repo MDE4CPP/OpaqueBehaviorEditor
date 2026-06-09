@@ -43,6 +43,8 @@ public class CodeEditorConfigurator {
     
     private Color searchHighlightColor;
     private String currentSearchText;
+    
+    private int currentFontSize = 13;
     private SourceViewer sourceViewer;
 
     public CodeEditorConfigurator(SemanticHighlighter semanticHighlighter, ModelValidator modelValidator) {
@@ -65,6 +67,7 @@ public class CodeEditorConfigurator {
         setupLineNumbers(codeText);
         setupSyntaxHighlighting(sourceViewer, codeText);
         setupBracketMatching(sourceViewer);
+        setupCurrentLineHighlighting(sourceViewer);
 
         // ---- Attach Undo/Redo Manager ----
         org.eclipse.jface.text.IUndoManager undoManager = new org.eclipse.jface.text.TextViewerUndoManager(200);
@@ -91,14 +94,50 @@ public class CodeEditorConfigurator {
             } else if (isCtrl && e.keyCode == '/') {
                 toggleComments(sourceViewer);
                 e.doit = false;
+            } else if (isCtrl && (e.keyCode == '=' || e.keyCode == '+')) {
+                zoomIn();
+                e.doit = false;
+            } else if (isCtrl && e.keyCode == '-') {
+                zoomOut();
+                e.doit = false;
             }
         });
+    }
+
+    private void zoomIn() {
+        if (currentFontSize < 40) {
+            currentFontSize++;
+            updateFont();
+        }
+    }
+
+    private void zoomOut() {
+        if (currentFontSize > 6) {
+            currentFontSize--;
+            updateFont();
+        }
+    }
+
+    private void updateFont() {
+        if (sourceViewer == null || sourceViewer.getTextWidget() == null || sourceViewer.getTextWidget().isDisposed()) return;
+        StyledText codeText = sourceViewer.getTextWidget();
+        Display display = codeText.getDisplay();
+        
+        Font oldFont = monoFont;
+        String fontName = System.getProperty("os.name").toLowerCase().contains("mac") ? "Monaco" : "Consolas";
+        monoFont = new Font(display, fontName, currentFontSize, SWT.NORMAL);
+        codeText.setFont(monoFont);
+        
+        if (oldFont != null && !oldFont.isDisposed()) {
+            oldFont.dispose();
+        }
     }
 
     private void setupEditorFontAndColors(Composite parent, StyledText codeText) {
         Display display = parent.getDisplay();
         // Monospace font
-        monoFont = new Font(display, new FontData("Menlo", 12, SWT.NORMAL));
+        String fontName = System.getProperty("os.name").toLowerCase().contains("mac") ? "Monaco" : "Consolas";
+        monoFont = new Font(display, fontName, currentFontSize, SWT.NORMAL);
         codeText.setFont(monoFont);
         codeText.setTabs(4);
         
@@ -351,6 +390,24 @@ public class CodeEditorConfigurator {
             if (matchColor != null) matchColor.dispose();
             if (matcher != null) matcher.dispose();
             if (painter != null) painter.deactivate(true);
+        });
+    }
+
+    private void setupCurrentLineHighlighting(SourceViewer sourceViewer) {
+        org.eclipse.jface.text.CursorLinePainter cursorPainter = 
+            new org.eclipse.jface.text.CursorLinePainter(sourceViewer);
+            
+        // Subtle background color for current line (VS Code Dark style: #232323)
+        Color cursorLineColor = new Color(sourceViewer.getTextWidget().getDisplay(), new RGB(40, 40, 40));
+        cursorPainter.setHighlightColor(cursorLineColor);
+        
+        if (sourceViewer instanceof org.eclipse.jface.text.ITextViewerExtension2 ext2) {
+            ext2.addPainter(cursorPainter);
+        }
+        
+        sourceViewer.getTextWidget().addDisposeListener(e -> {
+            if (cursorLineColor != null) cursorLineColor.dispose();
+            if (cursorPainter != null) cursorPainter.deactivate(true);
         });
     }
 

@@ -29,8 +29,6 @@ import org.eclipse.swt.events.KeyEvent;
 
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelValidator;
-import com.burhankhanzada.opaquebehavioureditor.editor.core.CodeEditorConfigurator;
-import com.burhankhanzada.opaquebehavioureditor.editor.text.CodeTranslator;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.SnippetLibrary;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.CppExpressionParser;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;

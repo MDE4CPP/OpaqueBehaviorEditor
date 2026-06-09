@@ -1,8 +1,6 @@
 package com.burhankhanzada.opaquebehavioureditor.editor.ui;
 
 import org.eclipse.jface.text.IFindReplaceTarget;
-import org.eclipse.jface.text.IFindReplaceTargetExtension;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;

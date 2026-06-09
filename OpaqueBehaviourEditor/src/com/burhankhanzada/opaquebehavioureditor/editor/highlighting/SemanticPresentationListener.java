@@ -7,7 +7,6 @@ import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.graphics.Color;
 
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelValidator;

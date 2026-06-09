@@ -28,7 +28,6 @@ public class CodeEditorConfigurator {
     private final ModelValidator modelValidator;
     
     private TMPresentationReconciler tmReconciler;
-    private SourceViewer sourceViewer;
     private EditorThemeManager themeManager;
     private EditorActionManager actionManager;
 
@@ -38,7 +37,6 @@ public class CodeEditorConfigurator {
     }
 
     public void configure(Composite parent, SourceViewer sourceViewer) {
-        this.sourceViewer = sourceViewer;
         StyledText codeText = sourceViewer.getTextWidget();
 
         // Prevent ESC from closing the dialog while in the code editor

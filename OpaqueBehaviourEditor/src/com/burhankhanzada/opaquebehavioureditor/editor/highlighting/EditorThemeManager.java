@@ -45,7 +45,7 @@ public class EditorThemeManager {
         this.resourceManager = new LocalResourceManager(JFaceResources.getResources(), codeText);
         
         String fontName = System.getProperty("os.name").toLowerCase().contains("mac") ? "Monaco" : "Consolas";
-        monoFont = resourceManager.createFont(FontDescriptor.createFrom(fontName, currentFontSize, SWT.NORMAL));
+        monoFont = (Font) resourceManager.create(FontDescriptor.createFrom(fontName, currentFontSize, SWT.NORMAL));
         codeText.setFont(monoFont);
         codeText.setTabs(4);
         
@@ -56,10 +56,10 @@ public class EditorThemeManager {
         final Color separatorColor;
         
         if (dark) {
-            Color darkBg = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(30, 30, 30)));
-            Color darkFg = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(212, 212, 212)));
-            Color darkSelBg = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(38, 79, 120)));
-            Color darkSelFg = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(255, 255, 255)));
+            Color darkBg = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(30, 30, 30)));
+            Color darkFg = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(212, 212, 212)));
+            Color darkSelBg = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(38, 79, 120)));
+            Color darkSelFg = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(255, 255, 255)));
             
             codeText.setData("org.eclipse.e4.ui.css.id", "UMLOpaqueBehaviourEditorText");
             
@@ -77,27 +77,27 @@ public class EditorThemeManager {
                 }
             });
             
-            lineNumColor = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(133, 133, 133)));
-            separatorColor = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(80, 80, 80)));
-            searchHighlightColor = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(100, 100, 0))); 
+            lineNumColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(133, 133, 133)));
+            separatorColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(80, 80, 80)));
+            searchHighlightColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(100, 100, 0))); 
             
-            umlTypeColor = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(78, 201, 176)));
-            methodColor = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(220, 220, 170)));
-            variableColor = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(156, 220, 254)));
-            keywordColor = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(197, 134, 192))); 
-            commentColor = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(96, 139, 78)));   
-            stringColor = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(206, 145, 120)));  
+            umlTypeColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(78, 201, 176)));
+            methodColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(220, 220, 170)));
+            variableColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(156, 220, 254)));
+            keywordColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(197, 134, 192))); 
+            commentColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(96, 139, 78)));   
+            stringColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(206, 145, 120)));  
         } else {
-            lineNumColor = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(43, 145, 175)));
-            separatorColor = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(200, 200, 200)));
-            searchHighlightColor = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(255, 255, 0))); 
+            lineNumColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(43, 145, 175)));
+            separatorColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(200, 200, 200)));
+            searchHighlightColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(255, 255, 0))); 
             
-            umlTypeColor = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(38, 127, 153))); 
-            methodColor = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(121, 94, 38)));   
-            variableColor = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(0, 16, 128)));  
-            keywordColor = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(175, 0, 219)));  
-            commentColor = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(0, 128, 0)));    
-            stringColor = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(163, 21, 21)));   
+            umlTypeColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(38, 127, 153))); 
+            methodColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(121, 94, 38)));   
+            variableColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(0, 16, 128)));  
+            keywordColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(175, 0, 219)));  
+            commentColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(0, 128, 0)));    
+            stringColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(163, 21, 21)));   
         }
 
         // No need for addDisposeListener because resourceManager handles it automatically
@@ -113,7 +113,7 @@ public class EditorThemeManager {
         org.eclipse.jface.text.source.MatchingCharacterPainter painter = 
             new org.eclipse.jface.text.source.MatchingCharacterPainter(sourceViewer, matcher);
         
-        Color matchColor = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(160, 160, 160)));
+        Color matchColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(160, 160, 160)));
         painter.setColor(matchColor);
         painter.setHighlightCharacterAtCaretLocation(true);
         
@@ -131,7 +131,7 @@ public class EditorThemeManager {
         org.eclipse.jface.text.CursorLinePainter cursorPainter = 
             new org.eclipse.jface.text.CursorLinePainter(sourceViewer);
             
-        Color cursorLineColor = resourceManager.createColor(ColorDescriptor.createFrom(new RGB(40, 40, 40)));
+        Color cursorLineColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(40, 40, 40)));
         cursorPainter.setHighlightColor(cursorLineColor);
         
         if (sourceViewer instanceof org.eclipse.jface.text.ITextViewerExtension2 ext2) {
@@ -160,10 +160,9 @@ public class EditorThemeManager {
     private void updateFont() {
         if (sourceViewer == null || sourceViewer.getTextWidget() == null || sourceViewer.getTextWidget().isDisposed()) return;
         StyledText codeText = sourceViewer.getTextWidget();
-        Display display = codeText.getDisplay();
         
         String fontName = System.getProperty("os.name").toLowerCase().contains("mac") ? "Monaco" : "Consolas";
-        monoFont = resourceManager.createFont(FontDescriptor.createFrom(fontName, currentFontSize, SWT.NORMAL));
+        monoFont = (Font) resourceManager.create(FontDescriptor.createFrom(fontName, currentFontSize, SWT.NORMAL));
         codeText.setFont(monoFont);
     }
 

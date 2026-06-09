@@ -17,11 +17,13 @@ public class SimpleFindReplaceDialog {
 
     private final Shell parentShell;
     private final IFindReplaceTarget target;
+    private final CodeEditorConfigurator configurator;
     private Shell shell;
 
-    public SimpleFindReplaceDialog(Shell parentShell, IFindReplaceTarget target) {
+    public SimpleFindReplaceDialog(Shell parentShell, IFindReplaceTarget target, CodeEditorConfigurator configurator) {
         this.parentShell = parentShell;
         this.target = target;
+        this.configurator = configurator;
     }
 
     public void open() {
@@ -52,6 +54,10 @@ public class SimpleFindReplaceDialog {
         findButton.setText("Find Next");
         findButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
         
+        Button findAllButton = new Button(shell, SWT.PUSH);
+        findAllButton.setText("Find All");
+        findAllButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
+        
         Button replaceButton = new Button(shell, SWT.PUSH);
         replaceButton.setText("Replace");
         replaceButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
@@ -63,6 +69,7 @@ public class SimpleFindReplaceDialog {
         findButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
+                configurator.highlightSearch(null); // Clear highlight on normal find
                 String search = findText.getText();
                 if (!search.isEmpty()) {
                     Point sel = target.getSelection();
@@ -72,6 +79,14 @@ public class SimpleFindReplaceDialog {
                         target.findAndSelect(0, search, true, false, false);
                     }
                 }
+            }
+        });
+
+        findAllButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                String search = findText.getText();
+                configurator.highlightSearch(search.isEmpty() ? null : search);
             }
         });
 
@@ -111,6 +126,8 @@ public class SimpleFindReplaceDialog {
 
         shell.setDefaultButton(findButton);
         shell.pack();
+        
+        shell.addDisposeListener(e -> configurator.highlightSearch(null));
         
         // Center on parent
         Point parentLoc = parentShell.getLocation();

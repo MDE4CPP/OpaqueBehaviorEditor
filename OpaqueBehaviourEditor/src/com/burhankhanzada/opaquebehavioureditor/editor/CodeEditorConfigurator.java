@@ -38,6 +38,10 @@ public class CodeEditorConfigurator {
     private Color methodColor;
     private Color variableColor;
     private Color keywordColor;
+    
+    private Color searchHighlightColor;
+    private String currentSearchText;
+    private SourceViewer sourceViewer;
 
     public CodeEditorConfigurator(SemanticHighlighter semanticHighlighter, ModelValidator modelValidator) {
         this.semanticHighlighter = semanticHighlighter;
@@ -45,6 +49,7 @@ public class CodeEditorConfigurator {
     }
 
     public void configure(Composite parent, SourceViewer sourceViewer) {
+        this.sourceViewer = sourceViewer;
         StyledText codeText = sourceViewer.getTextWidget();
 
         // Prevent ESC from closing the dialog while in the code editor
@@ -63,7 +68,7 @@ public class CodeEditorConfigurator {
         org.eclipse.jface.text.IUndoManager undoManager = new org.eclipse.jface.text.TextViewerUndoManager(200);
         undoManager.connect(sourceViewer);
         
-        SimpleFindReplaceDialog findDialog = new SimpleFindReplaceDialog(parent.getShell(), sourceViewer.getFindReplaceTarget());
+        SimpleFindReplaceDialog findDialog = new SimpleFindReplaceDialog(parent.getShell(), sourceViewer.getFindReplaceTarget(), this);
         
         codeText.addVerifyKeyListener(e -> {
             boolean isCtrl = (e.stateMask & SWT.MOD1) != 0;
@@ -129,7 +134,8 @@ public class CodeEditorConfigurator {
             });
             
             lineNumColor = new Color(display, new RGB(133, 133, 133));
-            separatorColor = new Color(display, new RGB(64, 64, 64));
+            separatorColor = new Color(display, new RGB(80, 80, 80));
+            searchHighlightColor = new Color(display, new RGB(100, 100, 0)); // Dark yellow
             
             umlTypeColor = new Color(display, 78, 201, 176);
             methodColor = new Color(display, 220, 220, 170);
@@ -138,6 +144,7 @@ public class CodeEditorConfigurator {
         } else {
             lineNumColor = new Color(display, new RGB(43, 145, 175));
             separatorColor = new Color(display, new RGB(200, 200, 200));
+            searchHighlightColor = new Color(display, new RGB(255, 255, 0)); // Yellow
             
             // VS Code light theme semantic colors
             umlTypeColor = new Color(display, 38, 127, 153); // Dark teal (#267f99)
@@ -153,6 +160,7 @@ public class CodeEditorConfigurator {
             if (methodColor != null) methodColor.dispose();
             if (variableColor != null) variableColor.dispose();
             if (keywordColor != null) keywordColor.dispose();
+            if (searchHighlightColor != null) searchHighlightColor.dispose();
         });
         
         // Save these for line number painter
@@ -230,6 +238,19 @@ public class CodeEditorConfigurator {
                         textPresentation.mergeStyleRange(style);
                     }
                     
+                    // Search Highlighting
+                    if (currentSearchText != null && !currentSearchText.isEmpty()) {
+                        String fullText = codeText.getText();
+                        String lowerSearch = currentSearchText.toLowerCase();
+                        String lowerFull = fullText.toLowerCase();
+                        int idx = lowerFull.indexOf(lowerSearch);
+                        while (idx != -1) {
+                            StyleRange sr = new StyleRange(idx, currentSearchText.length(), null, searchHighlightColor);
+                            textPresentation.mergeStyleRange(sr);
+                            idx = lowerFull.indexOf(lowerSearch, idx + currentSearchText.length());
+                        }
+                    }
+                    
                     // Errors
                     List<TextRange> errors = modelValidator.validateMemberAccess(codeText.getText(), langDef);
                     errors.addAll(modelValidator.validateSyntax(codeText.getText(), langDef));
@@ -273,6 +294,16 @@ public class CodeEditorConfigurator {
         }
         if (tmReconciler != null) {
             tmReconciler.uninstall();
+        }
+        if (searchHighlightColor != null && !searchHighlightColor.isDisposed()) {
+            searchHighlightColor.dispose();
+        }
+    }
+    
+    public void highlightSearch(String text) {
+        this.currentSearchText = text;
+        if (sourceViewer != null && sourceViewer.getTextWidget() != null && !sourceViewer.getTextWidget().isDisposed()) {
+            sourceViewer.invalidateTextPresentation();
         }
     }
 

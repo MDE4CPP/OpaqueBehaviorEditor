@@ -27,8 +27,10 @@
             <visibleWhen checkEnabled="false">
                <with variable="selection">
                   <iterate ifEmpty="false">
-                     <!-- This references the UML package namespace to ensure it's a UML element -->
-                     <adapt type="org.eclipse.uml2.uml.OpaqueBehavior"/>
+                     <or>
+                        <adapt type="org.eclipse.uml2.uml.OpaqueBehavior"/>
+                        <instanceof value="java.util.Map$Entry"/>
+                     </or>
                   </iterate>
                </with>
             </visibleWhen>

@@ -57,34 +57,51 @@ public class OpenBodyEditorHandler extends AbstractHandler {
 
     private Object doExecute(ExecutionEvent event, Shell shell) {
         // ---- 1. Resolve Selection ----
-        // Extract the selected object from the Eclipse UI context
         ISelection selection = HandlerUtil.getCurrentSelection(event);
         if (!(selection instanceof IStructuredSelection structured) || structured.isEmpty()) {
-            MessageDialog.openInformation(shell, "Body Editor",
-                    "No element selected.");
+            MessageDialog.openInformation(shell, "Body Editor", "No element selected.");
             return null;
         }
 
         Object element = structured.getFirstElement();
 
-        // The debug dialog confirmed the type is OpaqueBehaviorImpl
-        if (!(element instanceof OpaqueBehavior behavior)) {
+        List<String> bodies    = new ArrayList<>();
+        List<String> languages = new ArrayList<>();
+        String       name      = "Ecore Annotation Body";
+        EObject      emfElement = null;
+        boolean      isUml     = false;
+
+        if (element instanceof OpaqueBehavior behavior) {
+            bodies.addAll(behavior.getBodies());
+            languages.addAll(behavior.getLanguages());
+            name = behavior.getName();
+            emfElement = behavior;
+            isUml = true;
+        } else if (element instanceof java.util.Map.Entry<?,?> mapEntry) {
+            Object key = mapEntry.getKey();
+            if ("body".equals(key)) {
+                Object value = mapEntry.getValue();
+                if (value instanceof String strValue) {
+                    bodies.add(strValue);
+                } else {
+                    bodies.add("");
+                }
+                languages.add("C++");
+                emfElement = (element instanceof EObject eObj) ? eObj : null;
+                isUml = false;
+            } else {
+                MessageDialog.openWarning(shell, "Body Editor",
+                        "The selected Map Entry does not have key='body'.\nKey is: " + key);
+                return null;
+            }
+        } else {
             MessageDialog.openWarning(shell, "Body Editor",
-                    "Selected element is not an OpaqueBehavior.\n"
+                    "Selected element is neither an OpaqueBehavior nor a valid Map Entry.\n"
                   + "Type: " + element.getClass().getName());
             return null;
         }
 
-        // ---- 2. Extract Existing Data ----
-        // Get the current bodies, languages, and name to pre-populate the dialog
-        List<String> bodies    = new ArrayList<>(behavior.getBodies());
-        List<String> languages = new ArrayList<>(behavior.getLanguages());
-        String       name      = behavior.getName();
-
         // ---- 3. Collect Model Context Types and Completion Words ----
-        // We traverse the entire UML model to collect class names, property names, 
-        // and operation names. These are used to populate the auto-completion popup 
-        // and semantic highlighter dictionaries.
         Set<String> contextTypes = new HashSet<>();
         UmlModelDictionary dictionary = new UmlModelDictionary();
         dictionary.autocompleteWords.add("factory");
@@ -93,8 +110,11 @@ public class OpenBodyEditorHandler extends AbstractHandler {
         org.eclipse.jface.viewers.ISelectionProvider selectionProvider = 
             (activePart != null && activePart.getSite() != null) ? activePart.getSite().getSelectionProvider() : null;
 
-        if (behavior.getModel() != null) {
-            UmlModelHarvester.harvest(behavior, contextTypes, dictionary);
+        if (isUml) {
+            OpaqueBehavior behavior = (OpaqueBehavior) emfElement;
+            if (behavior.getModel() != null) {
+                UmlModelHarvester.harvest(behavior, contextTypes, dictionary);
+            }
         }
 
         // ---- 4. Open the Editor Dialog ----
@@ -109,27 +129,48 @@ public class OpenBodyEditorHandler extends AbstractHandler {
         List<String> newBodies    = dialog.getBodies();
         List<String> newLanguages = dialog.getLanguages();
 
-        EditingDomain domain = AdapterFactoryEditingDomain.getEditingDomainFor(behavior);
+        EditingDomain domain = AdapterFactoryEditingDomain.getEditingDomainFor(emfElement);
         if (domain != null) {
-            org.eclipse.emf.edit.command.ChangeCommand cmd = new org.eclipse.emf.edit.command.ChangeCommand(behavior) {
+            org.eclipse.emf.edit.command.ChangeCommand cmd = new org.eclipse.emf.edit.command.ChangeCommand(emfElement) {
                 @Override
                 protected void doExecute() {
-                    behavior.getBodies().clear();
-                    behavior.getBodies().addAll(newBodies);
-                    behavior.getLanguages().clear();
-                    behavior.getLanguages().addAll(newLanguages);
+                    if (isUml) {
+                        OpaqueBehavior behavior = (OpaqueBehavior) emfElement;
+                        behavior.getBodies().clear();
+                        behavior.getBodies().addAll(newBodies);
+                        behavior.getLanguages().clear();
+                        behavior.getLanguages().addAll(newLanguages);
+                    } else {
+                        // It's a Map Entry. Update the value.
+                        @SuppressWarnings("unchecked")
+                        java.util.Map.Entry<String, String> mapEntry = (java.util.Map.Entry<String, String>) emfElement;
+                        if (!newBodies.isEmpty()) {
+                            mapEntry.setValue(newBodies.get(0));
+                        }
+                    }
                 }
             };
             domain.getCommandStack().execute(cmd);
         } else {
-            behavior.getBodies().clear();
-            behavior.getBodies().addAll(newBodies);
-            behavior.getLanguages().clear();
-            behavior.getLanguages().addAll(newLanguages);
+            if (isUml) {
+                OpaqueBehavior behavior = (OpaqueBehavior) emfElement;
+                behavior.getBodies().clear();
+                behavior.getBodies().addAll(newBodies);
+                behavior.getLanguages().clear();
+                behavior.getLanguages().addAll(newLanguages);
+            } else {
+                @SuppressWarnings("unchecked")
+                java.util.Map.Entry<String, String> mapEntry = (java.util.Map.Entry<String, String>) emfElement;
+                if (!newBodies.isEmpty()) {
+                    mapEntry.setValue(newBodies.get(0));
+                }
+            }
         }
 
         // ---- 6. Update Eclipse IMarkers for validation errors ----
-        MarkerManager.updateMarkers(behavior, newBodies, newLanguages, dictionary);
+        if (isUml) {
+            MarkerManager.updateMarkers((OpaqueBehavior) emfElement, newBodies, newLanguages, dictionary);
+        }
 
         return null;
     }

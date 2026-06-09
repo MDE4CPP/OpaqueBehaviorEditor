@@ -11,19 +11,19 @@ import org.junit.Test;
 import com.burhankhanzada.opaquebehavioureditor.editor.LanguageMapping;
 import com.burhankhanzada.opaquebehavioureditor.editor.SemanticHighlighter;
 import com.burhankhanzada.opaquebehavioureditor.model.TextRange;
-import com.burhankhanzada.opaquebehavioureditor.model.UmlModelDictionary;
-import com.burhankhanzada.opaquebehavioureditor.model.UmlModelValidator;
+import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
+import com.burhankhanzada.opaquebehavioureditor.model.ModelValidator;
 
 public class SemanticHighlighterTest {
 
-    private UmlModelDictionary dictionary;
+    private ModelDictionary dictionary;
     private SemanticHighlighter highlighter;
-    private UmlModelValidator validator;
+    private ModelValidator validator;
     private LanguageMapping.LanguageDef cppLangDef;
 
     @Before
     public void setUp() {
-        dictionary = new UmlModelDictionary();
+        dictionary = new ModelDictionary();
         // Add some dummy UML types and methods
         dictionary.classElements.put("Library", new java.util.HashMap<>());
         dictionary.classElements.put("Book", new java.util.HashMap<>());
@@ -34,7 +34,7 @@ public class SemanticHighlighterTest {
         dictionary.typeMembers.put("Library", libraryMethods);
 
         highlighter = new SemanticHighlighter(dictionary);
-        validator = new UmlModelValidator(dictionary);
+        validator = new ModelValidator(dictionary);
         cppLangDef = LanguageMapping.getLanguageDef("CPP");
     }
 
@@ -65,7 +65,7 @@ public class SemanticHighlighterTest {
     @Test
     public void testValidationSuccess() {
         String code = "std::shared_ptr<Library> lib;\nlib->printLibrary();";
-        List<com.burhankhanzada.opaquebehavioureditor.model.TextRange> errors = validator.validateUMLMemberAccess(code, cppLangDef);
+        List<TextRange> errors = validator.validateMemberAccess(code, cppLangDef);
         
         assertTrue("Should have no validation errors", errors.isEmpty());
     }
@@ -73,11 +73,11 @@ public class SemanticHighlighterTest {
     @Test
     public void testValidationError() {
         String code = "std::shared_ptr<Library> lib;\nlib->fakeMethod();";
-        List<com.burhankhanzada.opaquebehavioureditor.model.TextRange> errors = validator.validateUMLMemberAccess(code, cppLangDef);
+        List<TextRange> errors = validator.validateMemberAccess(code, cppLangDef);
         
         assertEquals("Should find exactly 1 validation error", 1, errors.size());
         
-        com.burhankhanzada.opaquebehavioureditor.model.TextRange error = errors.get(0);
+        TextRange error = errors.get(0);
         String errorMethod = code.substring(error.offset, error.offset + error.length);
         assertEquals("fakeMethod", errorMethod);
     }

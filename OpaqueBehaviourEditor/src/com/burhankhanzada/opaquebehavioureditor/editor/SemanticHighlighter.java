@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.burhankhanzada.opaquebehavioureditor.model.TextRange;
-import com.burhankhanzada.opaquebehavioureditor.model.UmlModelDictionary;
+import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
 import com.burhankhanzada.opaquebehavioureditor.editor.LanguageMapping.LanguageDef;
 
 public class SemanticHighlighter {
@@ -16,9 +16,9 @@ public class SemanticHighlighter {
         "Bag", "Set", "OrderedSet", "Sequence", "Union", "SubsetUnion"
     );
 
-    private final UmlModelDictionary dictionary;
+    private final ModelDictionary dictionary;
 
-    public SemanticHighlighter(UmlModelDictionary dictionary) {
+    public SemanticHighlighter(ModelDictionary dictionary) {
         this.dictionary = dictionary;
     }
 

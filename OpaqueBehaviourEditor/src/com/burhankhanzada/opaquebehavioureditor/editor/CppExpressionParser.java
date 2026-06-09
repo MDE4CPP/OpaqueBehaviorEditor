@@ -2,7 +2,7 @@ package com.burhankhanzada.opaquebehavioureditor.editor;
 
 import java.util.Map;
 
-import com.burhankhanzada.opaquebehavioureditor.model.UmlModelDictionary;
+import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
 
 /**
  * Utility class to parse C++ expressions from a text editor and determine the context
@@ -18,7 +18,7 @@ public class CppExpressionParser {
      * @param dictionary      The UML dictionary used to look up member return types.
      * @return The determined C++ type (e.g., "Book"), or null if it cannot be resolved.
      */
-    public static String resolveContextTypeFromText(String textBeforeCaret, UmlModelDictionary dictionary, String fullText) {
+    public static String resolveContextTypeFromText(String textBeforeCaret, ModelDictionary dictionary, String fullText) {
         if (textBeforeCaret.endsWith("->")) {
             textBeforeCaret = textBeforeCaret.substring(0, textBeforeCaret.length() - 2);
         } else if (textBeforeCaret.endsWith(".")) {

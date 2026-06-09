@@ -16,13 +16,13 @@ public class UmlModelHarvester {
 
     /**
      * Traverses the model associated with the given behavior and populates the provided
-     * contextTypes set and UmlModelDictionary.
+     * contextTypes set and ModelDictionary.
      *
      * @param behavior     The OpaqueBehavior whose model will be traversed.
      * @param contextTypes A Set to populate with discovered type names.
      * @param dictionary   The dictionary to populate with autocomplete words and elements.
      */
-    public static void harvest(OpaqueBehavior behavior, Set<String> contextTypes, UmlModelDictionary dictionary) {
+    public static void harvest(OpaqueBehavior behavior, Set<String> contextTypes, ModelDictionary dictionary) {
         if (behavior.getModel() == null) {
             return;
         }

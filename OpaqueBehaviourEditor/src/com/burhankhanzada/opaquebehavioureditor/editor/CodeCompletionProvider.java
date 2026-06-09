@@ -27,8 +27,8 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 
-import com.burhankhanzada.opaquebehavioureditor.model.UmlModelDictionary;
-import com.burhankhanzada.opaquebehavioureditor.model.UmlModelValidator;
+import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
+import com.burhankhanzada.opaquebehavioureditor.model.ModelValidator;
 import com.burhankhanzada.opaquebehavioureditor.editor.LanguageMapping.LanguageDef;
 
 /**
@@ -51,7 +51,7 @@ public class CodeCompletionProvider {
 
     private TreeSet<String> completionWords = new TreeSet<>();
     private LanguageDef currentLangDef;
-    private final UmlModelDictionary dictionary;
+    private final ModelDictionary dictionary;
     private ISelectionProvider selectionProvider;
 
     /** Tracks whether we're currently inserting a completion (to avoid re-triggering). */
@@ -64,7 +64,7 @@ public class CodeCompletionProvider {
     private static final int MAX_PROPOSALS = 15;
     
 
-    public CodeCompletionProvider(StyledText styledText, String language, UmlModelDictionary dictionary) {
+    public CodeCompletionProvider(StyledText styledText, String language, ModelDictionary dictionary) {
         this.styledText = styledText;
         this.darkTheme = isDarkTheme(styledText.getDisplay());
         this.dictionary = dictionary;
@@ -333,7 +333,7 @@ public class CodeCompletionProvider {
                 allowedMembers.addAll(members.keySet());
             }
             if (currentLangDef != null && currentLangDef.name.equals("CPP")) {
-                for (String m : UmlModelValidator.COMMON_METHODS) allowedMembers.add(m);
+                for (String m : ModelValidator.COMMON_METHODS) allowedMembers.add(m);
             }
             
             // If we can resolve the exact type of the object we're calling a method on,
@@ -345,7 +345,7 @@ public class CodeCompletionProvider {
                     contextType.startsWith("OrderedSet<") || contextType.startsWith("Sequence<") ||
                     contextType.startsWith("Union<") || contextType.startsWith("SubsetUnion<")) {
                     allowedMembers.clear(); // Only suggest collection methods
-                    for (String m : UmlModelValidator.MDE4CPP_COLLECTION_METHODS) allowedMembers.add(m);
+                    for (String m : ModelValidator.MDE4CPP_COLLECTION_METHODS) allowedMembers.add(m);
                 } else if (dictionary.typeMembers.containsKey(contextType)) {
                     // Exact type found, replace fallback with specific members
                     allowedMembers = new TreeSet<>(dictionary.typeMembers.get(contextType).keySet());

@@ -6,10 +6,10 @@ import java.util.TreeSet;
 import org.eclipse.emf.ecore.EObject;
 
 /**
- * A central dictionary that stores extracted elements from the UML model
+ * A central dictionary that stores extracted elements from the UML or Ecore model
  * so they can be referenced quickly for auto-completion and hyperlink navigation.
  */
-public class UmlModelDictionary {
+public class ModelDictionary {
     /** General words that appear in the autocomplete popup (e.g., class names, global properties). */
     public final TreeSet<String> autocompleteWords = new TreeSet<>();
     

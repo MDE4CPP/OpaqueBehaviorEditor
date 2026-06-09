@@ -6,7 +6,7 @@ import java.util.Map;
 
 import com.burhankhanzada.opaquebehavioureditor.editor.LanguageMapping.LanguageDef;
 
-public class UmlModelValidator {
+public class ModelValidator {
 
     public static final String[] COMMON_METHODS = {
         "add", "remove", "clear", "size", "empty", "front", "back", "insert", "erase", 
@@ -21,13 +21,13 @@ public class UmlModelValidator {
         "front", "back", "begin", "end", "at"
     };
 
-    private final UmlModelDictionary dictionary;
+    private final ModelDictionary dictionary;
 
-    public UmlModelValidator(UmlModelDictionary dictionary) {
+    public ModelValidator(ModelDictionary dictionary) {
         this.dictionary = dictionary;
     }
 
-    public List<TextRange> validateUMLMemberAccess(String text, LanguageDef currentLangDef) {
+    public List<TextRange> validateMemberAccess(String text, LanguageDef currentLangDef) {
         List<TextRange> errors = new ArrayList<>();
         if (currentLangDef == null || !currentLangDef.name.equals("CPP")) {
             return errors;
@@ -74,7 +74,7 @@ public class UmlModelValidator {
                 }
                 
                 if (!isValid) {
-                    errors.add(new TextRange(methodOffset, methodLength, "Method '" + methodName + "' is not defined in UML class '" + rawType + "'"));
+                    errors.add(new TextRange(methodOffset, methodLength, "Method '" + methodName + "' is not defined in class '" + rawType + "'"));
                 }
             }
         }

@@ -24,13 +24,13 @@ import org.eclipse.tm4e.registry.TMEclipseRegistryPlugin;
 import org.eclipse.tm4e.ui.text.TMPresentationReconciler;
 
 import com.burhankhanzada.opaquebehavioureditor.model.TextRange;
-import com.burhankhanzada.opaquebehavioureditor.model.UmlModelValidator;
+import com.burhankhanzada.opaquebehavioureditor.model.ModelValidator;
 import com.burhankhanzada.opaquebehavioureditor.ui.ThemeUtils;
 
 public class CodeEditorConfigurator {
 
     private final SemanticHighlighter semanticHighlighter;
-    private final UmlModelValidator modelValidator;
+    private final ModelValidator modelValidator;
     
     private TMPresentationReconciler tmReconciler;
     private Font monoFont;
@@ -38,7 +38,7 @@ public class CodeEditorConfigurator {
     private Color methodColor;
     private Color variableColor;
 
-    public CodeEditorConfigurator(SemanticHighlighter semanticHighlighter, UmlModelValidator modelValidator) {
+    public CodeEditorConfigurator(SemanticHighlighter semanticHighlighter, ModelValidator modelValidator) {
         this.semanticHighlighter = semanticHighlighter;
         this.modelValidator = modelValidator;
     }
@@ -204,7 +204,7 @@ public class CodeEditorConfigurator {
                     }
                     
                     // Errors
-                    List<TextRange> errors = modelValidator.validateUMLMemberAccess(codeText.getText(), langDef);
+                    List<TextRange> errors = modelValidator.validateMemberAccess(codeText.getText(), langDef);
                     errors.addAll(modelValidator.validateSyntax(codeText.getText(), langDef));
                     
                     for (TextRange err : errors) {

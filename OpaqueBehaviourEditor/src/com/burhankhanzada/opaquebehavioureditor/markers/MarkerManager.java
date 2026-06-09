@@ -12,8 +12,8 @@ import org.eclipse.emf.ecore.EValidator;
 import org.eclipse.uml2.uml.OpaqueBehavior;
 import com.burhankhanzada.opaquebehavioureditor.editor.LanguageMapping;
 import com.burhankhanzada.opaquebehavioureditor.model.TextRange;
-import com.burhankhanzada.opaquebehavioureditor.model.UmlModelDictionary;
-import com.burhankhanzada.opaquebehavioureditor.model.UmlModelValidator;
+import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
+import com.burhankhanzada.opaquebehavioureditor.model.ModelValidator;
 
 import java.util.List;
 
@@ -21,7 +21,7 @@ public class MarkerManager {
 
     public static final String MARKER_ID = "com.burhankhanzada.opaquebehavioureditor.problem";
 
-    public static void updateMarkers(OpaqueBehavior behavior, List<String> bodies, List<String> languages, UmlModelDictionary dictionary) {
+    public static void updateMarkers(OpaqueBehavior behavior, List<String> bodies, List<String> languages, ModelDictionary dictionary) {
         IFile file = getWorkspaceFile(behavior);
         if (file == null) return;
 
@@ -36,13 +36,13 @@ public class MarkerManager {
             }
 
             // Run validation and create new markers
-            UmlModelValidator validator = new UmlModelValidator(dictionary);
+            ModelValidator validator = new ModelValidator(dictionary);
             for (int i = 0; i < bodies.size(); i++) {
                 String body = bodies.get(i);
                 String lang = i < languages.size() ? languages.get(i) : "";
                 LanguageMapping.LanguageDef langDef = LanguageMapping.getLanguageDef(lang);
                 
-                List<TextRange> errors = validator.validateUMLMemberAccess(body, langDef);
+                List<TextRange> errors = validator.validateMemberAccess(body, langDef);
                 for (TextRange error : errors) {
                     createMarker(file, behaviorURI, body, error, lang);
                 }

@@ -34,8 +34,8 @@ import com.burhankhanzada.opaquebehavioureditor.editor.CodeTranslator;
 import com.burhankhanzada.opaquebehavioureditor.editor.LanguageMapping;
 import com.burhankhanzada.opaquebehavioureditor.editor.SemanticHighlighter;
 import com.burhankhanzada.opaquebehavioureditor.model.BodyEntry;
-import com.burhankhanzada.opaquebehavioureditor.model.UmlModelDictionary;
-import com.burhankhanzada.opaquebehavioureditor.model.UmlModelValidator;
+import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
+import com.burhankhanzada.opaquebehavioureditor.model.ModelValidator;
 
 /**
  * Dialog for editing the body entries of a UML OpaqueBehaviour.
@@ -57,11 +57,11 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
     private Button upButton;
     private Button downButton;
     private CodeCompletionProvider completionProvider;
-    private final UmlModelDictionary dictionary;
+    private final ModelDictionary dictionary;
     private final ISelectionProvider selectionProvider;
     
     private final SemanticHighlighter semanticHighlighter;
-    private final UmlModelValidator modelValidator;
+    private final ModelValidator modelValidator;
     private final CodeEditorConfigurator editorConfigurator;
 
     private boolean suppressListener = false;
@@ -72,7 +72,7 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
                                     List<String> languages,
                                     String name,
                                     Set<String> contextTypes,
-                                    UmlModelDictionary dictionary,
+                                    ModelDictionary dictionary,
                                     ISelectionProvider selectionProvider,
                                     boolean isUml) {
         super(parentShell);
@@ -82,7 +82,7 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
         this.selectionProvider = selectionProvider;
         this.isUml = isUml;
         this.semanticHighlighter = new SemanticHighlighter(dictionary);
-        this.modelValidator = new UmlModelValidator(dictionary);
+        this.modelValidator = new ModelValidator(dictionary);
         this.editorConfigurator = new CodeEditorConfigurator(this.semanticHighlighter, this.modelValidator);
 
         for (int i = 0; i < bodies.size(); i++) {

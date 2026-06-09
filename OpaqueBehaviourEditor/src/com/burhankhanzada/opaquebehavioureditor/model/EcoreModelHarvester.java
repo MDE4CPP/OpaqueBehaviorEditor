@@ -18,7 +18,7 @@ import org.eclipse.emf.ecore.EOperation;
  */
 public class EcoreModelHarvester {
 
-    public static void harvest(EPackage ePackage, Set<String> contextTypes, UmlModelDictionary dictionary) {
+    public static void harvest(EPackage ePackage, Set<String> contextTypes, ModelDictionary dictionary) {
         if (ePackage == null) {
             return;
         }

@@ -25,7 +25,7 @@ import org.eclipse.uml2.uml.OpaqueBehavior;
 
 import com.burhankhanzada.opaquebehavioureditor.markers.MarkerManager;
 import com.burhankhanzada.opaquebehavioureditor.ui.OpaqueBehaviorBodyDialog;
-import com.burhankhanzada.opaquebehavioureditor.model.UmlModelDictionary;
+import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
 import com.burhankhanzada.opaquebehavioureditor.model.UmlModelHarvester;
 import com.burhankhanzada.opaquebehavioureditor.model.EcoreModelHarvester;
 
@@ -100,7 +100,7 @@ public class OpenBodyEditorHandler extends AbstractHandler {
 
         // ---- 3. Collect Model Context Types and Completion Words ----
         Set<String> contextTypes = new HashSet<>();
-        UmlModelDictionary dictionary = new UmlModelDictionary();
+        ModelDictionary dictionary = new ModelDictionary();
         dictionary.autocompleteWords.add("factory");
         
         IWorkbenchPart activePart = HandlerUtil.getActivePart(event);

@@ -1,10 +1,10 @@
-package umlopaquebehaviourbodyeditor.model;
+package com.burhankhanzada.opaquebehavioureditor.model;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import umlopaquebehaviourbodyeditor.editor.LanguageMapping.LanguageDef;
-import umlopaquebehaviourbodyeditor.editor.*;
+import com.burhankhanzada.opaquebehavioureditor.editor.LanguageMapping.LanguageDef;
+import com.burhankhanzada.opaquebehavioureditor.editor.*;
 
 public class UmlModelValidator {
 

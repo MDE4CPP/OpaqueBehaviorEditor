@@ -1,4 +1,4 @@
-package umlopaquebehaviourbodyeditor.markers;
+package com.burhankhanzada.opaquebehavioureditor.markers;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -9,16 +9,16 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.uml2.uml.OpaqueBehavior;
-import umlopaquebehaviourbodyeditor.editor.LanguageMapping;
-import umlopaquebehaviourbodyeditor.model.TextRange;
-import umlopaquebehaviourbodyeditor.model.UmlModelDictionary;
-import umlopaquebehaviourbodyeditor.model.UmlModelValidator;
+import com.burhankhanzada.opaquebehavioureditor.editor.LanguageMapping;
+import com.burhankhanzada.opaquebehavioureditor.model.TextRange;
+import com.burhankhanzada.opaquebehavioureditor.model.UmlModelDictionary;
+import com.burhankhanzada.opaquebehavioureditor.model.UmlModelValidator;
 
 import java.util.List;
 
 public class MarkerManager {
 
-    public static final String MARKER_ID = "umlopaquebehaviourbodyeditor.problem";
+    public static final String MARKER_ID = "com.burhankhanzada.opaquebehavioureditor.problem";
 
     public static void updateMarkers(OpaqueBehavior behavior, List<String> bodies, List<String> languages, UmlModelDictionary dictionary) {
         IFile file = getWorkspaceFile(behavior);

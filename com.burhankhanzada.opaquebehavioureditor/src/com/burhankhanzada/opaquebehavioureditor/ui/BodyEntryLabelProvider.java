@@ -1,8 +1,8 @@
-package umlopaquebehaviourbodyeditor.ui;
+package com.burhankhanzada.opaquebehavioureditor.ui;
 
-import umlopaquebehaviourbodyeditor.ui.*;
-import umlopaquebehaviourbodyeditor.editor.*;
-import umlopaquebehaviourbodyeditor.model.*;
+import com.burhankhanzada.opaquebehavioureditor.ui.*;
+import com.burhankhanzada.opaquebehavioureditor.editor.*;
+import com.burhankhanzada.opaquebehavioureditor.model.*;
 
 
 import java.util.List;

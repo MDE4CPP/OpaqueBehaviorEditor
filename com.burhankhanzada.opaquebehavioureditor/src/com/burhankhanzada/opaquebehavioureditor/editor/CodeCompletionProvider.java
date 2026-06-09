@@ -1,4 +1,4 @@
-package umlopaquebehaviourbodyeditor.editor;
+package com.burhankhanzada.opaquebehavioureditor.editor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,8 +29,8 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 
-import umlopaquebehaviourbodyeditor.editor.LanguageMapping.LanguageDef;
-import umlopaquebehaviourbodyeditor.model.*;
+import com.burhankhanzada.opaquebehavioureditor.editor.LanguageMapping.LanguageDef;
+import com.burhankhanzada.opaquebehavioureditor.model.*;
 
 /**
  * Provides code completion for a {@link StyledText} widget.

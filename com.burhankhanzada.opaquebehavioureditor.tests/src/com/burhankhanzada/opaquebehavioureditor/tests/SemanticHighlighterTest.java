@@ -1,4 +1,4 @@
-package umlopaquebehaviourbodyeditor.tests;
+package com.burhankhanzada.opaquebehavioureditor.tests;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -8,11 +8,11 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-import umlopaquebehaviourbodyeditor.editor.LanguageMapping;
-import umlopaquebehaviourbodyeditor.editor.SemanticHighlighter;
-import umlopaquebehaviourbodyeditor.model.TextRange;
-import umlopaquebehaviourbodyeditor.model.UmlModelDictionary;
-import umlopaquebehaviourbodyeditor.model.UmlModelValidator;
+import com.burhankhanzada.opaquebehavioureditor.editor.LanguageMapping;
+import com.burhankhanzada.opaquebehavioureditor.editor.SemanticHighlighter;
+import com.burhankhanzada.opaquebehavioureditor.model.TextRange;
+import com.burhankhanzada.opaquebehavioureditor.model.UmlModelDictionary;
+import com.burhankhanzada.opaquebehavioureditor.model.UmlModelValidator;
 
 public class SemanticHighlighterTest {
 
@@ -65,7 +65,7 @@ public class SemanticHighlighterTest {
     @Test
     public void testValidationSuccess() {
         String code = "std::shared_ptr<Library> lib;\nlib->printLibrary();";
-        List<umlopaquebehaviourbodyeditor.model.TextRange> errors = validator.validateUMLMemberAccess(code, cppLangDef);
+        List<com.burhankhanzada.opaquebehavioureditor.model.TextRange> errors = validator.validateUMLMemberAccess(code, cppLangDef);
         
         assertTrue("Should have no validation errors", errors.isEmpty());
     }
@@ -73,11 +73,11 @@ public class SemanticHighlighterTest {
     @Test
     public void testValidationError() {
         String code = "std::shared_ptr<Library> lib;\nlib->fakeMethod();";
-        List<umlopaquebehaviourbodyeditor.model.TextRange> errors = validator.validateUMLMemberAccess(code, cppLangDef);
+        List<com.burhankhanzada.opaquebehavioureditor.model.TextRange> errors = validator.validateUMLMemberAccess(code, cppLangDef);
         
         assertEquals("Should find exactly 1 validation error", 1, errors.size());
         
-        umlopaquebehaviourbodyeditor.model.TextRange error = errors.get(0);
+        com.burhankhanzada.opaquebehavioureditor.model.TextRange error = errors.get(0);
         String errorMethod = code.substring(error.offset, error.offset + error.length);
         assertEquals("fakeMethod", errorMethod);
     }

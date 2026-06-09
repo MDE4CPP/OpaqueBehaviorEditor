@@ -1,11 +1,11 @@
-package umlopaquebehaviourbodyeditor.editor;
+package com.burhankhanzada.opaquebehavioureditor.editor;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import umlopaquebehaviourbodyeditor.editor.LanguageMapping.LanguageDef;
-import umlopaquebehaviourbodyeditor.model.*;
+import com.burhankhanzada.opaquebehavioureditor.editor.LanguageMapping.LanguageDef;
+import com.burhankhanzada.opaquebehavioureditor.model.*;
 
 public class SemanticHighlighter {
 

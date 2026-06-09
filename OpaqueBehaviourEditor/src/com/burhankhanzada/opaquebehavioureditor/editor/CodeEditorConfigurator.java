@@ -78,6 +78,8 @@ public class CodeEditorConfigurator {
         codeText.addVerifyKeyListener(e -> {
             boolean isCtrl = (e.stateMask & SWT.MOD1) != 0;
             boolean isShift = (e.stateMask & SWT.SHIFT) != 0;
+            boolean isAlt = (e.stateMask & SWT.ALT) != 0;
+            
             if (isCtrl && e.keyCode == 'z') {
                 if (isShift) {
                     if (undoManager.redoable()) undoManager.redo();
@@ -88,7 +90,10 @@ public class CodeEditorConfigurator {
             } else if (isCtrl && e.keyCode == 'y') {
                 if (undoManager.redoable()) undoManager.redo();
                 e.doit = false;
-            } else if (isCtrl && e.keyCode == 'f') {
+            } else if (isCtrl && isShift && e.keyCode == 'f') {
+                formatDocument(sourceViewer);
+                e.doit = false;
+            } else if (isCtrl && !isShift && e.keyCode == 'f') {
                 findDialog.open();
                 e.doit = false;
             } else if (isCtrl && e.keyCode == '/') {
@@ -100,8 +105,32 @@ public class CodeEditorConfigurator {
             } else if (isCtrl && e.keyCode == '-') {
                 zoomOut();
                 e.doit = false;
+            } else if (isAlt && e.keyCode == 'z') {
+                codeText.setWordWrap(!codeText.getWordWrap());
+                e.doit = false;
             }
         });
+    }
+
+    private void formatDocument(SourceViewer sourceViewer) {
+        org.eclipse.jface.text.IDocument doc = sourceViewer.getDocument();
+        StyledText codeText = sourceViewer.getTextWidget();
+        String lang = (String) codeText.getData("currentLanguage");
+        if (lang == null) lang = "";
+        
+        String currentText = doc.get();
+        String formatted = AutoFormatter.format(currentText, lang);
+        
+        if (!currentText.equals(formatted)) {
+            // Use compound change so format is a single undo step
+            if (sourceViewer instanceof org.eclipse.jface.text.ITextViewerExtension) {
+                ((org.eclipse.jface.text.ITextViewerExtension) sourceViewer).getRewriteTarget().beginCompoundChange();
+            }
+            doc.set(formatted);
+            if (sourceViewer instanceof org.eclipse.jface.text.ITextViewerExtension) {
+                ((org.eclipse.jface.text.ITextViewerExtension) sourceViewer).getRewriteTarget().endCompoundChange();
+            }
+        }
     }
 
     private void zoomIn() {

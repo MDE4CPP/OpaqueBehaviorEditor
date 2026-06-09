@@ -14,8 +14,10 @@
     </properties>
 
     <modules>
-        <module>UMLOpaqueBehaviourBodyEditor</module>
-        <module>UMLOpaqueBehaviourBodyEditor.tests</module>
+        <module>com.burhankhanzada.opaquebehavioureditor</module>
+        <module>com.burhankhanzada.opaquebehavioureditor.tests</module>
+        <module>com.burhankhanzada.opaquebehavioureditor.feature</module>
+        <module>com.burhankhanzada.opaquebehavioureditor.repository</module>
     </modules>
 
     <repositories>

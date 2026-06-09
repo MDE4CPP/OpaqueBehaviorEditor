@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/com.burhankhanzada.opaquebehavioureditor.feature_1.0.0.qualifier.jar" id="com.burhankhanzada.opaquebehavioureditor.feature" version="1.0.0.qualifier">
+      <category name="com.burhankhanzada.opaquebehavioureditor.category"/>
+   </feature>
+   <category-def name="com.burhankhanzada.opaquebehavioureditor.category" label="OpaqueBehaviour Editor">
+      <description>
+         Plugins for OpaqueBehaviour Editor.
+      </description>
+   </category-def>
+</site>

@@ -10,7 +10,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>UMLOpaqueBehaviourBodyEditor.tests</artifactId>
+    <artifactId>com.burhankhanzada.opaquebehavioureditor.tests</artifactId>
     <packaging>eclipse-test-plugin</packaging>
 
     <build>

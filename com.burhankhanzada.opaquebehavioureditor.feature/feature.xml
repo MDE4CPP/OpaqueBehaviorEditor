@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="com.burhankhanzada.opaquebehavioureditor.feature"
+      label="OpaqueBehaviour Editor Feature"
+      version="1.0.0.qualifier"
+      provider-name="Burhan Khanzada">
+
+   <description>
+      A custom code editor for UML OpaqueBehaviors.
+   </description>
+
+   <plugin
+         id="com.burhankhanzada.opaquebehavioureditor"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+</feature>

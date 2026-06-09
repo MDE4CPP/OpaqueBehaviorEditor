@@ -7,7 +7,7 @@ import java.util.Set;
 import com.burhankhanzada.opaquebehavioureditor.model.TextRange;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
-import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping.LanguageDef;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageDef;
 
 public class SemanticHighlighter {
 

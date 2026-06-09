@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping.LanguageDef;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageDef;
 
 public class ModelValidator {
 

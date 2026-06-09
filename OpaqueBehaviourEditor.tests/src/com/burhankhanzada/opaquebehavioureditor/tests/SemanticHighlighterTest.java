@@ -9,7 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
-import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping.LanguageDef;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageDef;
 import com.burhankhanzada.opaquebehavioureditor.editor.highlighting.SemanticHighlighter;
 import com.burhankhanzada.opaquebehavioureditor.model.TextRange;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;

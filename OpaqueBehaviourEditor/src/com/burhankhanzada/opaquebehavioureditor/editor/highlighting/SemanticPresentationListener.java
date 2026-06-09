@@ -8,6 +8,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 
+import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageDef;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelValidator;
 import com.burhankhanzada.opaquebehavioureditor.model.TextRange;
@@ -31,7 +32,7 @@ public class SemanticPresentationListener implements ITextPresentationListener {
     public void applyTextPresentation(TextPresentation textPresentation) {
         String language = (String) codeText.getData("currentLanguage");
         if (language == null) language = "";
-        LanguageMapping.LanguageDef langDef = LanguageMapping.getLanguageDef(language);
+        LanguageDef langDef = LanguageMapping.getLanguageDef(language);
         
         // Type Highlighting
         List<TextRange> typeRanges = semanticHighlighter.getUMLTypeRanges(codeText.getText(), langDef);

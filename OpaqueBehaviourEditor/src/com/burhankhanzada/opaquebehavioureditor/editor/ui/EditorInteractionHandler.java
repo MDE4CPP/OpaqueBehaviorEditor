@@ -12,8 +12,8 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Point;
 
 import com.burhankhanzada.opaquebehavioureditor.editor.text.CppExpressionParser;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageDef;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
-import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping.LanguageDef;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.TextUtilities;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
 import com.burhankhanzada.opaquebehavioureditor.utils.PluginLogger;

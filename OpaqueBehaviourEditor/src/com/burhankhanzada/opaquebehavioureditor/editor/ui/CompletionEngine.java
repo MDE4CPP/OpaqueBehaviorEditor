@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageDef;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
-import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping.LanguageDef;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.SnippetLibrary;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelValidator;

@@ -13,6 +13,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.EValidator;
 import org.eclipse.uml2.uml.OpaqueBehavior;
 
+import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageDef;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
 import com.burhankhanzada.opaquebehavioureditor.model.TextRange;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
@@ -42,7 +43,7 @@ public class MarkerManager {
             for (int i = 0; i < bodies.size(); i++) {
                 String body = bodies.get(i);
                 String lang = i < languages.size() ? languages.get(i) : "";
-                LanguageMapping.LanguageDef langDef = LanguageMapping.getLanguageDef(lang);
+                LanguageDef langDef = LanguageMapping.getLanguageDef(lang);
                 
                 List<TextRange> errors = validator.validateMemberAccess(body, langDef);
                 for (TextRange error : errors) {

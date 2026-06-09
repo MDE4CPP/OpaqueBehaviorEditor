@@ -1,5 +1,7 @@
 package com.burhankhanzada.opaquebehavioureditor.markers;
 
+import java.util.List;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -10,12 +12,11 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.EValidator;
 import org.eclipse.uml2.uml.OpaqueBehavior;
-import com.burhankhanzada.opaquebehavioureditor.editor.LanguageMapping;
+
+import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
 import com.burhankhanzada.opaquebehavioureditor.model.TextRange;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelValidator;
-
-import java.util.List;
 
 public class MarkerManager {
 

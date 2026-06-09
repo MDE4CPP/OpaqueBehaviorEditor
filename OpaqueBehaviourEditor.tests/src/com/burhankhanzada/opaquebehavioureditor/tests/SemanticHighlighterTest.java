@@ -8,8 +8,9 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.burhankhanzada.opaquebehavioureditor.editor.LanguageMapping;
-import com.burhankhanzada.opaquebehavioureditor.editor.SemanticHighlighter;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping.LanguageDef;
+import com.burhankhanzada.opaquebehavioureditor.editor.highlighting.SemanticHighlighter;
 import com.burhankhanzada.opaquebehavioureditor.model.TextRange;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelValidator;
@@ -19,7 +20,7 @@ public class SemanticHighlighterTest {
     private ModelDictionary dictionary;
     private SemanticHighlighter highlighter;
     private ModelValidator validator;
-    private LanguageMapping.LanguageDef cppLangDef;
+    private LanguageDef cppLangDef;
 
     @Before
     public void setUp() {

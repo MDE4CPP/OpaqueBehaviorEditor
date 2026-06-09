@@ -1,4 +1,4 @@
-package com.burhankhanzada.opaquebehavioureditor.editor;
+package com.burhankhanzada.opaquebehavioureditor.editor.text;
 
 /**
  * Utility class to format and properly indent code snippets.

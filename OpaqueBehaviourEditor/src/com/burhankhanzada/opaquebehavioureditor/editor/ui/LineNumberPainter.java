@@ -1,4 +1,4 @@
-package com.burhankhanzada.opaquebehavioureditor.editor;
+package com.burhankhanzada.opaquebehavioureditor.editor.ui;
 
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.PaintEvent;

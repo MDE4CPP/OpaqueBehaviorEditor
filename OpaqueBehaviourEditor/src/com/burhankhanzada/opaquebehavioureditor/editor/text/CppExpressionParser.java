@@ -1,4 +1,4 @@
-package com.burhankhanzada.opaquebehavioureditor.editor;
+package com.burhankhanzada.opaquebehavioureditor.editor.text;
 
 import java.util.Map;
 

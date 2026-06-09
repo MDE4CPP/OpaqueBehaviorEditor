@@ -1,4 +1,4 @@
-package com.burhankhanzada.opaquebehavioureditor.editor;
+package com.burhankhanzada.opaquebehavioureditor.editor.highlighting;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -7,7 +7,7 @@ import java.util.Set;
 
 import com.burhankhanzada.opaquebehavioureditor.model.TextRange;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
-import com.burhankhanzada.opaquebehavioureditor.editor.LanguageMapping.LanguageDef;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping.LanguageDef;
 
 public class SemanticHighlighter {
 

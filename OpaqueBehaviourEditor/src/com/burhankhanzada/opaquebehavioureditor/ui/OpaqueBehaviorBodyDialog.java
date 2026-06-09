@@ -27,12 +27,12 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
-import com.burhankhanzada.opaquebehavioureditor.editor.AutoFormatter;
-import com.burhankhanzada.opaquebehavioureditor.editor.CodeCompletionProvider;
-import com.burhankhanzada.opaquebehavioureditor.editor.CodeEditorConfigurator;
-import com.burhankhanzada.opaquebehavioureditor.editor.CodeTranslator;
-import com.burhankhanzada.opaquebehavioureditor.editor.LanguageMapping;
-import com.burhankhanzada.opaquebehavioureditor.editor.SemanticHighlighter;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.AutoFormatter;
+import com.burhankhanzada.opaquebehavioureditor.editor.ui.CodeCompletionProvider;
+import com.burhankhanzada.opaquebehavioureditor.editor.core.CodeEditorConfigurator;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.CodeTranslator;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
+import com.burhankhanzada.opaquebehavioureditor.editor.highlighting.SemanticHighlighter;
 import com.burhankhanzada.opaquebehavioureditor.model.BodyEntry;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelValidator;

@@ -1,4 +1,4 @@
-package com.burhankhanzada.opaquebehavioureditor.editor;
+package com.burhankhanzada.opaquebehavioureditor.editor.text;
 
 public class SnippetLibrary {
 

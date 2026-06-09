@@ -1,4 +1,4 @@
-package com.burhankhanzada.opaquebehavioureditor.editor;
+package com.burhankhanzada.opaquebehavioureditor.editor.ui;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +29,12 @@ import org.eclipse.swt.events.KeyEvent;
 
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelValidator;
-import com.burhankhanzada.opaquebehavioureditor.editor.LanguageMapping.LanguageDef;
+import com.burhankhanzada.opaquebehavioureditor.editor.core.CodeEditorConfigurator;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.CodeTranslator;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.SnippetLibrary;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.CppExpressionParser;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping.LanguageDef;
 
 /**
  * Provides code completion for a {@link StyledText} widget.

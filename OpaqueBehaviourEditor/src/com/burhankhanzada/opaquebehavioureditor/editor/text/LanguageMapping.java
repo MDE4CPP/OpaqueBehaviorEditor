@@ -1,4 +1,4 @@
-package com.burhankhanzada.opaquebehavioureditor.editor;
+package com.burhankhanzada.opaquebehavioureditor.editor.text;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;

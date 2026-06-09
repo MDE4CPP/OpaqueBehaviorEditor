@@ -11,6 +11,8 @@ import org.eclipse.emf.edit.domain.AdapterFactoryEditingDomain;
 import org.eclipse.emf.edit.domain.EditingDomain;
 import org.eclipse.ui.IWorkbenchPart;
 
+import com.burhankhanzada.opaquebehavioureditor.StringConstants;
+
 public class EcoreAnnotationAdapter implements IModelAdapter {
 
     private final Map.Entry<String, String> mapEntry;
@@ -39,7 +41,7 @@ public class EcoreAnnotationAdapter implements IModelAdapter {
 
     @Override
     public String getName() {
-        return "Ecore Annotation (" + mapEntry.getKey() + ")";
+        return String.format(StringConstants.FORMAT_ANNOTATION_NAME, mapEntry.getKey());
     }
 
     @Override

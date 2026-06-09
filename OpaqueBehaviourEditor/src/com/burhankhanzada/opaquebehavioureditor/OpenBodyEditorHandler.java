@@ -36,8 +36,8 @@ public class OpenBodyEditorHandler extends AbstractHandler {
         try {
             return doExecute(event, shell);
         } catch (Exception e) {
-            MessageDialog.openError(shell, "Body Editor Error",
-                    "An error occurred:\n" + e.getClass().getSimpleName() + ": " + e.getMessage());
+            MessageDialog.openError(shell, StringConstants.POPUP_TITLE_ERR,
+                    StringConstants.POPUP_MSG_ERR_PREFIX + e.getClass().getSimpleName() + ": " + e.getMessage());
             return null;
         }
     }
@@ -46,7 +46,7 @@ public class OpenBodyEditorHandler extends AbstractHandler {
         // ---- 1. Resolve Selection ----
         ISelection selection = HandlerUtil.getCurrentSelection(event);
         if (!(selection instanceof IStructuredSelection structured) || structured.isEmpty()) {
-            MessageDialog.openInformation(shell, "Body Editor", "No element selected.");
+            MessageDialog.openInformation(shell, StringConstants.POPUP_TITLE_INFO, StringConstants.POPUP_MSG_NO_SELECTION);
             return null;
         }
 
@@ -55,9 +55,8 @@ public class OpenBodyEditorHandler extends AbstractHandler {
         // ---- 2. Create Adapter ----
         IModelAdapter adapter = ModelAdapterFactory.createAdapter(element);
         if (adapter == null) {
-            MessageDialog.openWarning(shell, "Body Editor",
-                    "Selected element is neither an OpaqueBehavior nor a valid Map Entry.\n"
-                  + "Type: " + element.getClass().getName());
+            MessageDialog.openWarning(shell, StringConstants.POPUP_TITLE_INFO,
+                    StringConstants.POPUP_MSG_INVALID_SELECTION + element.getClass().getName());
             return null;
         }
 

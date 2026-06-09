@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
+import com.burhankhanzada.opaquebehavioureditor.StringConstants;
 import com.burhankhanzada.opaquebehavioureditor.editor.core.CodeEditorConfigurator;
 import com.burhankhanzada.opaquebehavioureditor.editor.highlighting.SemanticHighlighter;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.AutoFormatter;
@@ -50,7 +51,7 @@ public class CodeEditorComposite extends Composite {
         row.setLayout(new GridLayout(6, false));
 
         Label lbl = new Label(row, SWT.NONE);
-        lbl.setText("Language:");
+        lbl.setText(StringConstants.LBL_LANGUAGE);
 
         languageCombo = new Combo(row, SWT.DROP_DOWN | SWT.READ_ONLY);
         languageCombo.setItems(LanguageMapping.getAllLanguageNames());
@@ -66,7 +67,7 @@ public class CodeEditorComposite extends Composite {
         });
 
         Button formatBtn = new Button(row, SWT.PUSH);
-        formatBtn.setText("Format Code");
+        formatBtn.setText(StringConstants.BTN_FORMAT_CODE);
         formatBtn.addListener(SWT.Selection, e -> {
             if (codeText != null && !codeText.isDisposed()) {
                 String formatted = AutoFormatter.format(codeText.getText(), languageCombo.getText());
@@ -75,7 +76,7 @@ public class CodeEditorComposite extends Composite {
         });
 
         Label transLbl = new Label(row, SWT.NONE);
-        transLbl.setText("  Translate to:");
+        transLbl.setText(StringConstants.LBL_TRANSLATE_TO);
 
         targetLanguageCombo = new Combo(row, SWT.DROP_DOWN | SWT.READ_ONLY);
         targetLanguageCombo.setItems(LanguageMapping.getAllLanguageNames());
@@ -83,7 +84,7 @@ public class CodeEditorComposite extends Composite {
         if (ThemeUtils.isDarkTheme(parent)) ThemeUtils.fixComboDarkTheme(targetLanguageCombo);
 
         Button translateBtn = new Button(row, SWT.PUSH);
-        translateBtn.setText("Translate");
+        translateBtn.setText(StringConstants.BTN_TRANSLATE);
         translateBtn.addListener(SWT.Selection, e -> {
             if (codeText != null && !codeText.isDisposed()) {
                 String sourceLang = languageCombo.getText();
@@ -99,7 +100,7 @@ public class CodeEditorComposite extends Composite {
         
         // --- Code Section ---
         Label codeLbl = new Label(this, SWT.NONE);
-        codeLbl.setText("Body code:");
+        codeLbl.setText(StringConstants.LBL_BODY_CODE);
 
         sourceViewer = new SourceViewer(this, null, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
         sourceViewer.setDocument(new Document(""));

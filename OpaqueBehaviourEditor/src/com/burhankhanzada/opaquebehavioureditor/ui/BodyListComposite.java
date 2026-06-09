@@ -13,6 +13,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
+import com.burhankhanzada.opaquebehavioureditor.StringConstants;
 import com.burhankhanzada.opaquebehavioureditor.model.BodyEntry;
 
 public class BodyListComposite extends Composite {
@@ -34,7 +35,7 @@ public class BodyListComposite extends Composite {
         setLayout(new GridLayout(1, false));
         
         Label lbl = new Label(this, SWT.NONE);
-        lbl.setText("Body entries:");
+        lbl.setText(StringConstants.LBL_BODY_ENTRIES);
 
         Composite row = new Composite(this, SWT.NONE);
         row.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
@@ -60,10 +61,10 @@ public class BodyListComposite extends Composite {
         btnCol.setLayout(new GridLayout(1, true));
         btnCol.setLayoutData(new GridData(SWT.CENTER, SWT.TOP, false, false));
 
-        addButton    = ThemeUtils.createPushButton(btnCol, "Add");
-        removeButton = ThemeUtils.createPushButton(btnCol, "Remove");
-        upButton     = ThemeUtils.createPushButton(btnCol, "Up");
-        downButton   = ThemeUtils.createPushButton(btnCol, "Down");
+        addButton    = ThemeUtils.createPushButton(btnCol, StringConstants.BTN_ADD);
+        removeButton = ThemeUtils.createPushButton(btnCol, StringConstants.BTN_REMOVE);
+        upButton     = ThemeUtils.createPushButton(btnCol, StringConstants.BTN_UP);
+        downButton   = ThemeUtils.createPushButton(btnCol, StringConstants.BTN_DOWN);
 
         addButton.addListener(SWT.Selection, e -> onAdd());
         removeButton.addListener(SWT.Selection, e -> onRemove());

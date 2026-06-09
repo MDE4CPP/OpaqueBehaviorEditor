@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
+import com.burhankhanzada.opaquebehavioureditor.StringConstants;
 import com.burhankhanzada.opaquebehavioureditor.model.BodyEntry;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
 
@@ -80,7 +81,7 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
     @Override
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
-        shell.setText("Edit OpaqueBehaviour Body");
+        shell.setText(StringConstants.DIALOG_TITLE);
     }
 
     @Override
@@ -109,10 +110,10 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
     @Override
     protected Control createDialogArea(Composite parent) {
         Composite area = (Composite) super.createDialogArea(parent);
-        setTitle("Edit OpaqueBehaviour Body");
+        setTitle(StringConstants.DIALOG_TITLE);
         setMessage(behaviourName != null && !behaviourName.isBlank()
-                ? "Editing body of: " + behaviourName
-                : "Edit body entries of the selected OpaqueBehaviour");
+                ? StringConstants.DIALOG_MSG_EDITING + behaviourName
+                : StringConstants.DIALOG_MSG_DEFAULT);
         
         Composite main = new Composite(area, SWT.NONE);
         main.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));

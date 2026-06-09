@@ -79,7 +79,7 @@ public class OpenBodyEditorHandler extends AbstractHandler {
             isUml = true;
         } else if (element instanceof java.util.Map.Entry<?,?> mapEntry) {
             Object key = mapEntry.getKey();
-            if ("body".equals(key)) {
+            if ("body".equals(key) || "includes".equals(key)) {
                 Object value = mapEntry.getValue();
                 if (value instanceof String strValue) {
                     bodies.add(strValue);
@@ -89,9 +89,10 @@ public class OpenBodyEditorHandler extends AbstractHandler {
                 languages.add("C++");
                 emfElement = (element instanceof EObject eObj) ? eObj : null;
                 isUml = false;
+                name = "Ecore Annotation (" + key + ")";
             } else {
                 MessageDialog.openWarning(shell, "Body Editor",
-                        "The selected Map Entry does not have key='body'.\nKey is: " + key);
+                        "The selected Map Entry does not have key='body' or 'includes'.\nKey is: " + key);
                 return null;
             }
         } else {

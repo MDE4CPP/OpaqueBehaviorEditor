@@ -22,6 +22,11 @@ public class EcoreModelHarvester {
         if (ePackage == null) {
             return;
         }
+        
+        if (ePackage.getName() != null && !ePackage.getName().isBlank()) {
+            dictionary.typeMembers.putIfAbsent(ePackage.getName(), new HashMap<>());
+            dictionary.typeMembers.putIfAbsent(ePackage.getName() + "_ecore", new HashMap<>());
+        }
 
         TreeIterator<EObject> it = ePackage.eAllContents();
         while (it.hasNext()) {

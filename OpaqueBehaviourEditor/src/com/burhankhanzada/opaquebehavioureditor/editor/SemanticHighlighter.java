@@ -13,7 +13,8 @@ public class SemanticHighlighter {
 
     public static final Set<String> STD_TYPES = Set.of(
         "std", "shared_ptr", "weak_ptr", "unique_ptr", "dynamic_pointer_cast",
-        "Bag", "Set", "OrderedSet", "Sequence", "Union", "SubsetUnion"
+        "Bag", "Set", "OrderedSet", "Sequence", "Union", "SubsetUnion",
+        "Any", "cout", "endl", "const_iterator", "iterator", "string", "bool", "int", "double", "float", "char", "void", "auto"
     );
 
     private final ModelDictionary dictionary;

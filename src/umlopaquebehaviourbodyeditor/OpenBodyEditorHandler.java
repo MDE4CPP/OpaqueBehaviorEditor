@@ -3,6 +3,7 @@ package umlopaquebehaviourbodyeditor;
 import umlopaquebehaviourbodyeditor.ui.*;
 import umlopaquebehaviourbodyeditor.editor.*;
 import umlopaquebehaviourbodyeditor.model.*;
+import umlopaquebehaviourbodyeditor.markers.MarkerManager;
 
 
 import java.util.ArrayList;
@@ -126,6 +127,9 @@ public class OpenBodyEditorHandler extends AbstractHandler {
             behavior.getLanguages().clear();
             behavior.getLanguages().addAll(newLanguages);
         }
+
+        // ---- 6. Update Eclipse IMarkers for validation errors ----
+        MarkerManager.updateMarkers(behavior, newBodies, newLanguages, dictionary);
 
         return null;
     }

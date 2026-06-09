@@ -14,7 +14,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jface.text,
  org.eclipse.tm4e.core,
  org.eclipse.tm4e.registry,
- org.eclipse.tm4e.ui
+ org.eclipse.tm4e.ui,
+ org.eclipse.core.resources
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Automatic-Module-Name: UMLOpaqueBehaviourBodyEditor
 Bundle-ActivationPolicy: lazy

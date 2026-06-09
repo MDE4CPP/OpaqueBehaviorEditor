@@ -27,6 +27,7 @@ import com.burhankhanzada.opaquebehavioureditor.markers.MarkerManager;
 import com.burhankhanzada.opaquebehavioureditor.ui.OpaqueBehaviorBodyDialog;
 import com.burhankhanzada.opaquebehavioureditor.model.UmlModelDictionary;
 import com.burhankhanzada.opaquebehavioureditor.model.UmlModelHarvester;
+import com.burhankhanzada.opaquebehavioureditor.model.EcoreModelHarvester;
 
 /**
  * Command handler that opens the {@link OpaqueBehaviorBodyDialog}
@@ -110,6 +111,11 @@ public class OpenBodyEditorHandler extends AbstractHandler {
             OpaqueBehavior behavior = (OpaqueBehavior) emfElement;
             if (behavior.getModel() != null) {
                 UmlModelHarvester.harvest(behavior, contextTypes, dictionary);
+            }
+        } else {
+            EObject root = org.eclipse.emf.ecore.util.EcoreUtil.getRootContainer(emfElement);
+            if (root instanceof org.eclipse.emf.ecore.EPackage) {
+                EcoreModelHarvester.harvest((org.eclipse.emf.ecore.EPackage) root, contextTypes, dictionary);
             }
         }
 

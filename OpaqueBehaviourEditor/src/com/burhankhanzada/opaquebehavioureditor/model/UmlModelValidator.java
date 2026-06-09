@@ -3,8 +3,8 @@ package com.burhankhanzada.opaquebehavioureditor.model;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import com.burhankhanzada.opaquebehavioureditor.editor.LanguageMapping.LanguageDef;
-import com.burhankhanzada.opaquebehavioureditor.editor.*;
 
 public class UmlModelValidator {
 

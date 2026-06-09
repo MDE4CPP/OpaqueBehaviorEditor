@@ -1,12 +1,8 @@
 package com.burhankhanzada.opaquebehavioureditor;
 
-import com.burhankhanzada.opaquebehavioureditor.ui.*;
-import com.burhankhanzada.opaquebehavioureditor.editor.*;
-import com.burhankhanzada.opaquebehavioureditor.model.*;
-
+import org.osgi.framework.BundleContext;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.osgi.framework.BundleContext;
 
 public class Activator extends AbstractUIPlugin {
 

@@ -1,10 +1,5 @@
 package com.burhankhanzada.opaquebehavioureditor.editor;
 
-import com.burhankhanzada.opaquebehavioureditor.ui.*;
-import com.burhankhanzada.opaquebehavioureditor.editor.*;
-import com.burhankhanzada.opaquebehavioureditor.model.*;
-
-
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;

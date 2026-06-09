@@ -1,10 +1,5 @@
 package com.burhankhanzada.opaquebehavioureditor.editor;
 
-import com.burhankhanzada.opaquebehavioureditor.ui.*;
-import com.burhankhanzada.opaquebehavioureditor.editor.*;
-import com.burhankhanzada.opaquebehavioureditor.model.*;
-
-
 /**
  * Utility class to format and properly indent code snippets.
  * Provides a "best-effort" naive formatter for C-like languages 

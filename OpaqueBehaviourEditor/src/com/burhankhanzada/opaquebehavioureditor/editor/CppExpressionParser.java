@@ -1,11 +1,8 @@
 package com.burhankhanzada.opaquebehavioureditor.editor;
 
-import com.burhankhanzada.opaquebehavioureditor.ui.*;
-import com.burhankhanzada.opaquebehavioureditor.editor.*;
-import com.burhankhanzada.opaquebehavioureditor.model.*;
-
-
 import java.util.Map;
+
+import com.burhankhanzada.opaquebehavioureditor.model.UmlModelDictionary;
 
 /**
  * Utility class to parse C++ expressions from a text editor and determine the context

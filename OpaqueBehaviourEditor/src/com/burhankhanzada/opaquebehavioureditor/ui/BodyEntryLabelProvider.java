@@ -1,12 +1,10 @@
 package com.burhankhanzada.opaquebehavioureditor.ui;
 
-import com.burhankhanzada.opaquebehavioureditor.ui.*;
-import com.burhankhanzada.opaquebehavioureditor.editor.*;
-import com.burhankhanzada.opaquebehavioureditor.model.*;
-
-
 import java.util.List;
+
 import org.eclipse.jface.viewers.LabelProvider;
+
+import com.burhankhanzada.opaquebehavioureditor.model.BodyEntry;
 
 public class BodyEntryLabelProvider extends LabelProvider {
     

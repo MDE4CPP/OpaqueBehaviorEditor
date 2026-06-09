@@ -1,37 +1,22 @@
 package com.burhankhanzada.opaquebehavioureditor.ui;
 
-import com.burhankhanzada.opaquebehavioureditor.ui.*;
-import com.burhankhanzada.opaquebehavioureditor.editor.*;
-import com.burhankhanzada.opaquebehavioureditor.model.*;
-
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.Map;
 
-import org.eclipse.emf.ecore.EObject;
-import org.eclipse.jface.viewers.ISelectionProvider;
 
-import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.text.Document;
+import org.eclipse.jface.dialogs.TitleAreaDialog;
+import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.text.source.SourceViewer;
-import org.eclipse.jface.text.source.SourceViewerConfiguration;
-import org.eclipse.jface.text.presentation.IPresentationReconciler;
-import org.eclipse.tm4e.ui.text.TMPresentationReconciler;
-import org.eclipse.tm4e.core.grammar.IGrammar;
-import org.eclipse.tm4e.registry.TMEclipseRegistryPlugin;
+
 import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -41,6 +26,16 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+
+import com.burhankhanzada.opaquebehavioureditor.editor.AutoFormatter;
+import com.burhankhanzada.opaquebehavioureditor.editor.CodeCompletionProvider;
+import com.burhankhanzada.opaquebehavioureditor.editor.CodeEditorConfigurator;
+import com.burhankhanzada.opaquebehavioureditor.editor.CodeTranslator;
+import com.burhankhanzada.opaquebehavioureditor.editor.LanguageMapping;
+import com.burhankhanzada.opaquebehavioureditor.editor.SemanticHighlighter;
+import com.burhankhanzada.opaquebehavioureditor.model.BodyEntry;
+import com.burhankhanzada.opaquebehavioureditor.model.UmlModelDictionary;
+import com.burhankhanzada.opaquebehavioureditor.model.UmlModelValidator;
 
 /**
  * Dialog for editing the body entries of a UML OpaqueBehaviour.

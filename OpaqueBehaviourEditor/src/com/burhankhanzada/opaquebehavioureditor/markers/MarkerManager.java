@@ -8,6 +8,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.ecore.EValidator;
 import org.eclipse.uml2.uml.OpaqueBehavior;
 import com.burhankhanzada.opaquebehavioureditor.editor.LanguageMapping;
 import com.burhankhanzada.opaquebehavioureditor.model.TextRange;
@@ -29,7 +30,7 @@ public class MarkerManager {
             String behaviorURI = EcoreUtil.getURI(behavior).toString();
             IMarker[] existingMarkers = file.findMarkers(MARKER_ID, true, IResource.DEPTH_ZERO);
             for (IMarker m : existingMarkers) {
-                if (behaviorURI.equals(m.getAttribute(org.eclipse.emf.ecore.EValidator.URI_ATTRIBUTE))) {
+                if (behaviorURI.equals(m.getAttribute(EValidator.URI_ATTRIBUTE))) {
                     m.delete();
                 }
             }
@@ -64,7 +65,7 @@ public class MarkerManager {
         marker.setAttribute(IMarker.CHAR_END, error.offset + error.length);
         
         // Link to the EMF element so Papyrus can navigate to it
-        marker.setAttribute(org.eclipse.emf.ecore.EValidator.URI_ATTRIBUTE, behaviorURI);
+        marker.setAttribute(EValidator.URI_ATTRIBUTE, behaviorURI);
     }
 
     private static IFile getWorkspaceFile(OpaqueBehavior behavior) {

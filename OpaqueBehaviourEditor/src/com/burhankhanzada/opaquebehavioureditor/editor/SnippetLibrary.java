@@ -1,10 +1,5 @@
 package com.burhankhanzada.opaquebehavioureditor.editor;
 
-import com.burhankhanzada.opaquebehavioureditor.ui.*;
-import com.burhankhanzada.opaquebehavioureditor.editor.*;
-import com.burhankhanzada.opaquebehavioureditor.model.*;
-
-
 public class SnippetLibrary {
 
     public static class Snippet {

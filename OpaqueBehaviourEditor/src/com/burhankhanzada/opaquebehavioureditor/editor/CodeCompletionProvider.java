@@ -5,14 +5,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Map;
-import java.util.HashMap;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.FillLayout;
@@ -29,8 +27,9 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 
+import com.burhankhanzada.opaquebehavioureditor.model.UmlModelDictionary;
+import com.burhankhanzada.opaquebehavioureditor.model.UmlModelValidator;
 import com.burhankhanzada.opaquebehavioureditor.editor.LanguageMapping.LanguageDef;
-import com.burhankhanzada.opaquebehavioureditor.model.*;
 
 /**
  * Provides code completion for a {@link StyledText} widget.
@@ -64,7 +63,6 @@ public class CodeCompletionProvider {
     /** Maximum number of proposals shown. */
     private static final int MAX_PROPOSALS = 15;
     
-
 
     public CodeCompletionProvider(StyledText styledText, String language, UmlModelDictionary dictionary) {
         this.styledText = styledText;
@@ -421,8 +419,6 @@ public class CodeCompletionProvider {
         String textBeforeCaret = text.substring(0, start).stripTrailing();
         return CppExpressionParser.resolveContextTypeFromText(textBeforeCaret, dictionary, text);
     }
-
-
 
     private EObject resolveHyperlink(String word, String textBeforeCaret) {
         String contextType = CppExpressionParser.resolveContextTypeFromText(textBeforeCaret, dictionary, styledText.getText());

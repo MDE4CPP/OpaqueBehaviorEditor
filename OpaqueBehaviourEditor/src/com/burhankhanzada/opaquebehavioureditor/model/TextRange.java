@@ -1,10 +1,5 @@
 package com.burhankhanzada.opaquebehavioureditor.model;
 
-import com.burhankhanzada.opaquebehavioureditor.ui.*;
-import com.burhankhanzada.opaquebehavioureditor.editor.*;
-import com.burhankhanzada.opaquebehavioureditor.model.*;
-
-
 /**
  * Represents a range of text within the editor, used primarily for 
  * semantic highlighting, syntax errors, and tooltip definitions.

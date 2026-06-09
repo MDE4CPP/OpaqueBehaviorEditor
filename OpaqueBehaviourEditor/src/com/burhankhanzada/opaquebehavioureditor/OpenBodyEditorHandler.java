@@ -1,37 +1,32 @@
 package com.burhankhanzada.opaquebehavioureditor;
 
-import com.burhankhanzada.opaquebehavioureditor.ui.*;
-import com.burhankhanzada.opaquebehavioureditor.editor.*;
-import com.burhankhanzada.opaquebehavioureditor.model.*;
-import com.burhankhanzada.opaquebehavioureditor.markers.MarkerManager;
-
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Map;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.emf.common.command.CompoundCommand;
-import org.eclipse.emf.edit.command.SetCommand;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.edit.domain.AdapterFactoryEditingDomain;
 import org.eclipse.emf.edit.domain.EditingDomain;
+import org.eclipse.emf.edit.command.ChangeCommand;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.uml2.uml.OpaqueBehavior;
-import org.eclipse.uml2.uml.UMLPackage;
-import org.eclipse.emf.common.util.TreeIterator;
-import org.eclipse.emf.ecore.EObject;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.HashMap;
-import org.eclipse.uml2.uml.UMLPackage;
+
+import com.burhankhanzada.opaquebehavioureditor.markers.MarkerManager;
+import com.burhankhanzada.opaquebehavioureditor.ui.OpaqueBehaviorBodyDialog;
+import com.burhankhanzada.opaquebehavioureditor.model.UmlModelDictionary;
+import com.burhankhanzada.opaquebehavioureditor.model.UmlModelHarvester;
 
 /**
  * Command handler that opens the {@link OpaqueBehaviorBodyDialog}
@@ -77,7 +72,7 @@ public class OpenBodyEditorHandler extends AbstractHandler {
             name = behavior.getName();
             emfElement = behavior;
             isUml = true;
-        } else if (element instanceof java.util.Map.Entry<?,?> mapEntry) {
+        } else if (element instanceof Map.Entry<?,?> mapEntry) {
             Object key = mapEntry.getKey();
             Object value = mapEntry.getValue();
             if (value == null || value instanceof String) {
@@ -108,7 +103,7 @@ public class OpenBodyEditorHandler extends AbstractHandler {
         dictionary.autocompleteWords.add("factory");
         
         IWorkbenchPart activePart = HandlerUtil.getActivePart(event);
-        org.eclipse.jface.viewers.ISelectionProvider selectionProvider = 
+        ISelectionProvider selectionProvider = 
             (activePart != null && activePart.getSite() != null) ? activePart.getSite().getSelectionProvider() : null;
 
         if (isUml) {
@@ -135,7 +130,7 @@ public class OpenBodyEditorHandler extends AbstractHandler {
         final boolean finalIsUml = isUml;
 
         if (domain != null) {
-            org.eclipse.emf.edit.command.ChangeCommand cmd = new org.eclipse.emf.edit.command.ChangeCommand(finalEmfElement) {
+            ChangeCommand cmd = new ChangeCommand(finalEmfElement) {
                 @Override
                 protected void doExecute() {
                     if (finalIsUml) {
@@ -147,7 +142,7 @@ public class OpenBodyEditorHandler extends AbstractHandler {
                     } else {
                         // It's a Map Entry. Update the value.
                         @SuppressWarnings("unchecked")
-                        java.util.Map.Entry<String, String> mapEntry = (java.util.Map.Entry<String, String>) finalEmfElement;
+                        Map.Entry<String, String> mapEntry = (Map.Entry<String, String>) finalEmfElement;
                         if (!newBodies.isEmpty()) {
                             mapEntry.setValue(newBodies.get(0));
                         }
@@ -164,7 +159,7 @@ public class OpenBodyEditorHandler extends AbstractHandler {
                 behavior.getLanguages().addAll(newLanguages);
             } else {
                 @SuppressWarnings("unchecked")
-                java.util.Map.Entry<String, String> mapEntry = (java.util.Map.Entry<String, String>) emfElement;
+                Map.Entry<String, String> mapEntry = (Map.Entry<String, String>) emfElement;
                 if (!newBodies.isEmpty()) {
                     mapEntry.setValue(newBodies.get(0));
                 }

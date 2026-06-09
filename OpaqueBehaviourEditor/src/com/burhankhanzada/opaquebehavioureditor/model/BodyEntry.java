@@ -1,10 +1,5 @@
 package com.burhankhanzada.opaquebehavioureditor.model;
 
-import com.burhankhanzada.opaquebehavioureditor.ui.*;
-import com.burhankhanzada.opaquebehavioureditor.editor.*;
-import com.burhankhanzada.opaquebehavioureditor.model.*;
-
-
 /**
  * Represents a single opaque behavior body block, which consists of
  * the source code (body) and the language it is written in.

@@ -10,7 +10,10 @@ public class UmlModelValidator {
 
     public static final String[] COMMON_METHODS = {
         "add", "remove", "clear", "size", "empty", "front", "back", "insert", "erase", 
-        "push_back", "pop_back", "begin", "end", "find", "count", "length", "substr", "at"
+        "push_back", "pop_back", "begin", "end", "find", "count", "length", "substr", "at",
+        // EMF standard methods
+        "eSet", "eGet", "eIsSet", "eUnset", "eClass", "eContainer", "eContents",
+        "eAllContents", "eCrossReferences", "eResource", "eIsProxy", "eResolveProxy"
     };
 
     public static final String[] MDE4CPP_COLLECTION_METHODS = {

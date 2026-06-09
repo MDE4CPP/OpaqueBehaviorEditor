@@ -57,6 +57,7 @@ public class CodeEditorConfigurator {
         setupEditorFontAndColors(parent, codeText);
         setupLineNumbers(codeText);
         setupSyntaxHighlighting(sourceViewer, codeText);
+        setupBracketMatching(sourceViewer);
 
         // ---- Attach Undo/Redo Manager ----
         org.eclipse.jface.text.IUndoManager undoManager = new org.eclipse.jface.text.TextViewerUndoManager(200);

@@ -294,7 +294,7 @@ public class CodeEditorConfigurator {
         sourceViewer.getTextWidget().addDisposeListener(e -> {
             if (matchColor != null) matchColor.dispose();
             if (matcher != null) matcher.dispose();
-            if (painter != null) painter.deactivate();
+            if (painter != null) painter.deactivate(true);
         });
     }
 }

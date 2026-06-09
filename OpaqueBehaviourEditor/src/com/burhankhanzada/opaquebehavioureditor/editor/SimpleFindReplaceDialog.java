@@ -37,12 +37,16 @@ public class SimpleFindReplaceDialog {
         Label findLabel = new Label(shell, SWT.NONE);
         findLabel.setText("Find:");
         Text findText = new Text(shell, SWT.BORDER);
-        findText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        GridData findGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        findGd.widthHint = 250;
+        findText.setLayoutData(findGd);
 
         Label replaceLabel = new Label(shell, SWT.NONE);
         replaceLabel.setText("Replace:");
         Text replaceText = new Text(shell, SWT.BORDER);
-        replaceText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        GridData replaceGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        replaceGd.widthHint = 250;
+        replaceText.setLayoutData(replaceGd);
 
         Button findButton = new Button(shell, SWT.PUSH);
         findButton.setText("Find Next");
@@ -61,7 +65,12 @@ public class SimpleFindReplaceDialog {
             public void widgetSelected(SelectionEvent e) {
                 String search = findText.getText();
                 if (!search.isEmpty()) {
-                    target.findAndSelect(-1, search, true, false, false);
+                    Point sel = target.getSelection();
+                    int startOffset = sel.x + sel.y; // start from end of current selection
+                    if (target.findAndSelect(startOffset, search, true, false, false) == -1) {
+                        // If not found, wrap around to the beginning
+                        target.findAndSelect(0, search, true, false, false);
+                    }
                 }
             }
         });
@@ -74,7 +83,11 @@ public class SimpleFindReplaceDialog {
                     target.replaceSelection(replace);
                     String search = findText.getText();
                     if (!search.isEmpty()) {
-                        target.findAndSelect(-1, search, true, false, false);
+                        Point sel = target.getSelection();
+                        int startOffset = sel.x + sel.y;
+                        if (target.findAndSelect(startOffset, search, true, false, false) == -1) {
+                            target.findAndSelect(0, search, true, false, false);
+                        }
                     }
                 } catch (Exception ex) {}
             }

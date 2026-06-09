@@ -122,7 +122,20 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
 
     @Override
     protected Point getInitialSize() {
-        return new Point(850, 700);
+        return new Point(1100, 800);
+    }
+
+    @Override
+    protected Point getInitialLocation(Point initialSize) {
+        org.eclipse.swt.graphics.Rectangle displayBounds;
+        if (getParentShell() != null && getParentShell().getMonitor() != null) {
+            displayBounds = getParentShell().getMonitor().getBounds();
+        } else {
+            displayBounds = Display.getCurrent().getPrimaryMonitor().getBounds();
+        }
+        int x = displayBounds.x + (displayBounds.width - initialSize.x) / 2;
+        int y = displayBounds.y + (displayBounds.height - initialSize.y) / 2;
+        return new Point(Math.max(displayBounds.x, x), Math.max(displayBounds.y, y));
     }
 
     @Override

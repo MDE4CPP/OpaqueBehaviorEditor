@@ -1,18 +1,30 @@
 package com.burhankhanzada.opaquebehavioureditor.editor.ui;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.link.LinkedModeModel;
+import org.eclipse.jface.text.link.LinkedModeUI;
+import org.eclipse.jface.text.link.LinkedPosition;
+import org.eclipse.jface.text.link.LinkedPositionGroup;
+import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.jface.viewers.ISelectionProvider;
 
 import com.burhankhanzada.opaquebehavioureditor.editor.text.CppExpressionParser;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.SnippetLibrary;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.TextUtilities;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
+import com.burhankhanzada.opaquebehavioureditor.utils.PluginLogger;
 
 /**
  * Orchestrates code completion, smart pointers, tooltips, and hyperlink navigation
@@ -20,6 +32,7 @@ import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
  */
 public class CodeCompletionProvider {
 
+    private final ITextViewer sourceViewer;
     private final StyledText styledText;
     private final CompletionEngine engine;
     private final CompletionPopup popup;
@@ -30,8 +43,9 @@ public class CodeCompletionProvider {
     private boolean inserting = false;
     private static final int AUTO_TRIGGER_LENGTH = 2;
 
-    public CodeCompletionProvider(StyledText styledText, String language, ModelDictionary dictionary) {
-        this.styledText = styledText;
+    public CodeCompletionProvider(ITextViewer sourceViewer, String language, ModelDictionary dictionary) {
+        this.sourceViewer = sourceViewer;
+        this.styledText = sourceViewer.getTextWidget();
         this.dictionary = dictionary;
         this.engine = new CompletionEngine(dictionary);
         this.popup = new CompletionPopup(styledText);
@@ -217,12 +231,47 @@ public class CodeCompletionProvider {
                 }
             }
             if (matchedSnippet != null) {
-                styledText.replaceTextRange(prefixStart, caretOffset - prefixStart, matchedSnippet.template);
-                int placeholderIndex = matchedSnippet.template.indexOf(matchedSnippet.placeholder);
-                if (placeholderIndex >= 0) {
-                    styledText.setSelection(prefixStart + placeholderIndex, prefixStart + placeholderIndex + matchedSnippet.placeholder.length());
-                } else {
-                    styledText.setCaretOffset(prefixStart + matchedSnippet.template.length());
+                String template = matchedSnippet.template;
+                
+                Pattern p = Pattern.compile("\\$\\{([^}]+)\\}");
+                Matcher m = p.matcher(template);
+                StringBuffer sb = new StringBuffer();
+                Map<String, java.util.List<Integer>> varOffsets = new java.util.LinkedHashMap<>();
+                
+                while (m.find()) {
+                    String varName = m.group(1);
+                    m.appendReplacement(sb, "");
+                    int startOffset = sb.length();
+                    sb.append(varName);
+                    
+                    varOffsets.computeIfAbsent(varName, k -> new ArrayList<>()).add(startOffset);
+                }
+                m.appendTail(sb);
+                
+                String rawText = sb.toString();
+                IDocument doc = sourceViewer.getDocument();
+                
+                try {
+                    doc.replace(prefixStart, caretOffset - prefixStart, rawText);
+                    
+                    if (!varOffsets.isEmpty()) {
+                        LinkedModeModel model = new LinkedModeModel();
+                        for (Map.Entry<String, java.util.List<Integer>> entry : varOffsets.entrySet()) {
+                            LinkedPositionGroup group = new LinkedPositionGroup();
+                            String varName = entry.getKey();
+                            for (int offset : entry.getValue()) {
+                                group.addPosition(new LinkedPosition(doc, prefixStart + offset, varName.length(), LinkedPositionGroup.NO_STOP));
+                            }
+                            model.addGroup(group);
+                        }
+                        model.forceInstall();
+                        LinkedModeUI ui = new LinkedModeUI(model, sourceViewer);
+                        ui.enter();
+                    } else {
+                        styledText.setCaretOffset(prefixStart + rawText.length());
+                    }
+                } catch (BadLocationException ex) {
+                    PluginLogger.logError("Snippet insertion failed", ex);
                 }
             } else {
                 styledText.replaceTextRange(prefixStart, caretOffset - prefixStart, selected);

@@ -114,7 +114,7 @@ public class CodeEditorComposite extends Composite {
         
         editorConfigurator.configure(this, sourceViewer);
 
-        completionProvider = new CodeCompletionProvider(codeText, "", dictionary);
+        completionProvider = new CodeCompletionProvider(sourceViewer, "", dictionary);
         completionProvider.setHyperlinkElements(selectionProvider);
 
         codeText.addModifyListener(e -> {

@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
-import java.util.TreeSet;
 
 import com.burhankhanzada.opaquebehavioureditor.utils.PluginLogger;
 
@@ -18,13 +16,11 @@ public class SnippetLibrary {
         public final String keyword;
         public final String label;
         public final String template;
-        public final String placeholder;
         
-        public Snippet(String keyword, String label, String template, String placeholder) {
+        public Snippet(String keyword, String label, String template) {
             this.keyword = keyword;
             this.label = label;
             this.template = template;
-            this.placeholder = placeholder;
         }
     }
 
@@ -67,35 +63,45 @@ public class SnippetLibrary {
     private static List<Snippet> loadSnippetsFromFile(File file) {
         List<Snippet> list = new ArrayList<>();
         Properties props = new Properties();
-        try (FileInputStream in = new FileInputStream(file);
-             java.io.InputStreamReader reader = new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8)) {
-            props.load(reader);
-            
-            // Extract distinct root keywords (e.g. "create", "for", "cast")
-            Set<String> keywords = new TreeSet<>();
-            for (Object keyObj : props.keySet()) {
-                String key = (String) keyObj;
-                int dotIdx = key.indexOf('.');
-                if (dotIdx > 0) {
-                    keywords.add(key.substring(0, dotIdx));
+
+        // 1. Load default snippets
+        try (java.io.InputStream defaultIn = SnippetLibrary.class.getResourceAsStream("default_snippets.properties");
+             java.io.InputStreamReader reader = new java.io.InputStreamReader(defaultIn, java.nio.charset.StandardCharsets.UTF_8)) {
+            if (defaultIn != null) {
+                props.load(reader);
+            }
+        } catch (IOException e) {
+            PluginLogger.logError("Failed to load default_snippets.properties", e);
+        }
+
+        // 2. Merge user snippets on top
+        if (file.exists()) {
+            try (FileInputStream in = new FileInputStream(file);
+                 java.io.InputStreamReader reader = new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8)) {
+                props.load(reader);
+            } catch (IOException e) {
+                PluginLogger.logError("Failed to load user snippets.properties", e);
+            }
+        }
+
+        try {
+            List<String> keywords = new ArrayList<>();
+            for (String key : props.stringPropertyNames()) {
+                if (key.endsWith(".template")) {
+                    keywords.add(key.substring(0, key.length() - 9));
                 }
             }
 
             for (String keyword : keywords) {
                 String label = props.getProperty(keyword + ".label", keyword + " (Snippet)");
-                String placeholder = props.getProperty(keyword + ".placeholder", "Type");
                 String template = props.getProperty(keyword + ".template", "");
                 
                 if (!template.isEmpty()) {
-                    list.add(new Snippet(keyword, label, template, placeholder));
+                    list.add(new Snippet(keyword, label, template));
                 }
             }
-        } catch (IOException e) {
-            PluginLogger.logError("Failed to load snippets.properties", e);
-            // Fallback to defaults
-            list.add(new Snippet("create", "create (Snippet)", "std::shared_ptr<Type> item = factory->createType();", "Type"));
-            list.add(new Snippet("for", "for (Snippet)", "for(std::shared_ptr<Type> item : *collection) {\n    \n}", "Type"));
-            list.add(new Snippet("cast", "cast (Snippet)", "std::shared_ptr<Type> casted = std::dynamic_pointer_cast<Type>(item);", "Type"));
+        } catch (Exception e) {
+            PluginLogger.logError("Failed to process merged snippets", e);
         }
         return list;
     }

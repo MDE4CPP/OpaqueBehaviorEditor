@@ -10,7 +10,7 @@ import org.osgi.framework.BundleContext;
 
 public class Activator extends AbstractUIPlugin {
 
-	public static final String PLUGIN_ID = "UMLOpaqueBehaviourBodyEditor";
+	public static final String PLUGIN_ID = "com.burhankhanzada.opaquebehavioureditor";
 
 	private static Activator plugin;
   

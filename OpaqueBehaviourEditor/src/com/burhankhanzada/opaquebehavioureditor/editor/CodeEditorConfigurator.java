@@ -62,6 +62,9 @@ public class CodeEditorConfigurator {
         // ---- Attach Undo/Redo Manager ----
         org.eclipse.jface.text.IUndoManager undoManager = new org.eclipse.jface.text.TextViewerUndoManager(200);
         undoManager.connect(sourceViewer);
+        
+        SimpleFindReplaceDialog findDialog = new SimpleFindReplaceDialog(parent.getShell(), sourceViewer.getFindReplaceTarget());
+        
         codeText.addVerifyKeyListener(e -> {
             boolean isCtrl = (e.stateMask & SWT.MOD1) != 0;
             boolean isShift = (e.stateMask & SWT.SHIFT) != 0;
@@ -74,6 +77,9 @@ public class CodeEditorConfigurator {
                 e.doit = false;
             } else if (isCtrl && e.keyCode == 'y') {
                 if (undoManager.redoable()) undoManager.redo();
+                e.doit = false;
+            } else if (isCtrl && e.keyCode == 'f') {
+                findDialog.open();
                 e.doit = false;
             }
         });
@@ -268,5 +274,27 @@ public class CodeEditorConfigurator {
         if (tmReconciler != null) {
             tmReconciler.uninstall();
         }
+    }
+
+    private void setupBracketMatching(SourceViewer sourceViewer) {
+        org.eclipse.jface.text.source.DefaultCharacterPairMatcher matcher = 
+            new org.eclipse.jface.text.source.DefaultCharacterPairMatcher(new char[] { '{', '}', '(', ')', '[', ']' });
+        
+        org.eclipse.jface.text.source.MatchingCharacterPainter painter = 
+            new org.eclipse.jface.text.source.MatchingCharacterPainter(sourceViewer, matcher);
+        
+        Color matchColor = new Color(sourceViewer.getTextWidget().getDisplay(), new RGB(160, 160, 160));
+        painter.setColor(matchColor);
+        painter.setHighlightCharacterAtCaretLocation(true);
+        
+        if (sourceViewer instanceof org.eclipse.jface.text.ITextViewerExtension2 ext2) {
+            ext2.addPainter(painter);
+        }
+        
+        sourceViewer.getTextWidget().addDisposeListener(e -> {
+            if (matchColor != null) matchColor.dispose();
+            if (matcher != null) matcher.dispose();
+            if (painter != null) painter.deactivate();
+        });
     }
 }

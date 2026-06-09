@@ -56,6 +56,25 @@ public class CodeEditorConfigurator {
         setupEditorFontAndColors(parent, codeText);
         setupLineNumbers(codeText);
         setupSyntaxHighlighting(sourceViewer, codeText);
+
+        // ---- Attach Undo/Redo Manager ----
+        org.eclipse.jface.text.IUndoManager undoManager = new org.eclipse.jface.text.TextViewerUndoManager(200);
+        undoManager.connect(sourceViewer);
+        codeText.addVerifyKeyListener(e -> {
+            boolean isCtrl = (e.stateMask & SWT.MOD1) != 0;
+            boolean isShift = (e.stateMask & SWT.SHIFT) != 0;
+            if (isCtrl && e.keyCode == 'z') {
+                if (isShift) {
+                    if (undoManager.redoable()) undoManager.redo();
+                } else {
+                    if (undoManager.undoable()) undoManager.undo();
+                }
+                e.doit = false;
+            } else if (isCtrl && e.keyCode == 'y') {
+                if (undoManager.redoable()) undoManager.redo();
+                e.doit = false;
+            }
+        });
     }
 
     private void setupEditorFontAndColors(Composite parent, StyledText codeText) {

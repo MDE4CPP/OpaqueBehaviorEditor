@@ -125,31 +125,49 @@ public class OpenBodyEditorHandler extends AbstractHandler {
         List<String> newBodies    = dialog.getBodies();
         List<String> newLanguages = dialog.getLanguages();
 
-        EditingDomain domain = AdapterFactoryEditingDomain.getEditingDomainFor(emfElement);
+        EditingDomain domain = null;
+        if (activePart instanceof org.eclipse.emf.edit.domain.IEditingDomainProvider) {
+            domain = ((org.eclipse.emf.edit.domain.IEditingDomainProvider) activePart).getEditingDomain();
+        }
+        if (domain == null) {
+            domain = AdapterFactoryEditingDomain.getEditingDomainFor(emfElement);
+            EObject parent = emfElement;
+            while (domain == null && parent.eContainer() != null) {
+                parent = parent.eContainer();
+                domain = AdapterFactoryEditingDomain.getEditingDomainFor(parent);
+            }
+        }
         final EObject finalEmfElement = emfElement;
         final boolean finalIsUml = isUml;
 
         if (domain != null) {
-            ChangeCommand cmd = new ChangeCommand(finalEmfElement) {
-                @Override
-                protected void doExecute() {
-                    if (finalIsUml) {
+            if (finalIsUml) {
+                ChangeCommand cmd = new ChangeCommand(finalEmfElement) {
+                    @Override
+                    protected void doExecute() {
                         OpaqueBehavior behavior = (OpaqueBehavior) finalEmfElement;
                         behavior.getBodies().clear();
                         behavior.getBodies().addAll(newBodies);
                         behavior.getLanguages().clear();
                         behavior.getLanguages().addAll(newLanguages);
-                    } else {
-                        // It's a Map Entry. Update the value.
+                    }
+                };
+                domain.getCommandStack().execute(cmd);
+            } else {
+                // It's a Map Entry. Update the value using ChangeCommand on the resource to ensure it records EMap changes.
+                org.eclipse.emf.common.notify.Notifier notifier = finalEmfElement.eResource() != null ? finalEmfElement.eResource() : finalEmfElement;
+                ChangeCommand cmd = new ChangeCommand(notifier) {
+                    @Override
+                    protected void doExecute() {
                         @SuppressWarnings("unchecked")
                         Map.Entry<String, String> mapEntry = (Map.Entry<String, String>) finalEmfElement;
                         if (!newBodies.isEmpty()) {
                             mapEntry.setValue(newBodies.get(0));
                         }
                     }
-                }
-            };
-            domain.getCommandStack().execute(cmd);
+                };
+                domain.getCommandStack().execute(cmd);
+            }
         } else {
             if (isUml) {
                 OpaqueBehavior behavior = (OpaqueBehavior) emfElement;

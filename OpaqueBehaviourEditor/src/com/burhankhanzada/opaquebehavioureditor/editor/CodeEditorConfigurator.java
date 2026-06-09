@@ -37,6 +37,7 @@ public class CodeEditorConfigurator {
     private Color umlTypeColor;
     private Color methodColor;
     private Color variableColor;
+    private Color keywordColor;
 
     public CodeEditorConfigurator(SemanticHighlighter semanticHighlighter, ModelValidator modelValidator) {
         this.semanticHighlighter = semanticHighlighter;
@@ -126,6 +127,7 @@ public class CodeEditorConfigurator {
             umlTypeColor = new Color(display, 78, 201, 176);
             methodColor = new Color(display, 220, 220, 170);
             variableColor = new Color(display, 156, 220, 254);
+            keywordColor = new Color(display, 197, 134, 192); // Purple (#c586c0)
         } else {
             lineNumColor = new Color(display, new RGB(43, 145, 175));
             separatorColor = new Color(display, new RGB(200, 200, 200));
@@ -134,15 +136,16 @@ public class CodeEditorConfigurator {
             umlTypeColor = new Color(display, 38, 127, 153); // Dark teal (#267f99)
             methodColor = new Color(display, 121, 94, 38);   // Dark yellow/brown (#795e26)
             variableColor = new Color(display, 0, 16, 128);  // Dark blue (#001080)
+            keywordColor = new Color(display, 175, 0, 219);  // Purple (#af00db)
         }
 
-        // Clean up colors
         codeText.addDisposeListener(e -> {
             if (lineNumColor != null) lineNumColor.dispose();
             if (separatorColor != null) separatorColor.dispose();
             if (umlTypeColor != null) umlTypeColor.dispose();
             if (methodColor != null) methodColor.dispose();
             if (variableColor != null) variableColor.dispose();
+            if (keywordColor != null) keywordColor.dispose();
         });
         
         // Save these for line number painter
@@ -193,6 +196,13 @@ public class CodeEditorConfigurator {
                     List<TextRange> methodRanges = semanticHighlighter.getMethodRanges(codeText.getText(), langDef);
                     for (TextRange mr : methodRanges) {
                         StyleRange style = new StyleRange(mr.offset, mr.length, methodColor, null);
+                        textPresentation.mergeStyleRange(style);
+                    }
+                    
+                    // Keyword Highlighting
+                    List<TextRange> keywordRanges = semanticHighlighter.getKeywordRanges(codeText.getText(), langDef);
+                    for (TextRange kr : keywordRanges) {
+                        StyleRange style = new StyleRange(kr.offset, kr.length, keywordColor, null);
                         textPresentation.mergeStyleRange(style);
                     }
                     

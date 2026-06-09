@@ -14,7 +14,13 @@ public class SemanticHighlighter {
     public static final Set<String> STD_TYPES = Set.of(
         "std", "shared_ptr", "weak_ptr", "unique_ptr", "dynamic_pointer_cast",
         "Bag", "Set", "OrderedSet", "Sequence", "Union", "SubsetUnion",
-        "Any", "cout", "endl", "const_iterator", "iterator", "string", "bool", "int", "double", "float", "char", "void", "auto"
+        "Any", "const_iterator", "iterator", "string", "bool", "int", "double", "float", "char", "void"
+    );
+
+    public static final Set<String> KEYWORDS = Set.of(
+        "if", "else", "for", "while", "do", "return", "new", "delete", "const", "auto", "this", 
+        "class", "struct", "public", "private", "protected", "virtual", "override", "switch", "case", 
+        "break", "continue", "true", "false", "nullptr"
     );
 
     private final ModelDictionary dictionary;
@@ -41,32 +47,46 @@ public class SemanticHighlighter {
         return ranges;
     }
 
-    public List<TextRange> getVariableRanges(String text, LanguageDef currentLangDef) {
+    public List<TextRange> getKeywordRanges(String text, LanguageDef currentLangDef) {
         List<TextRange> ranges = new ArrayList<>();
         if (currentLangDef == null || !currentLangDef.name.equals("CPP")) return ranges;
         
-        Set<String> vars = new HashSet<>();
-        vars.add("factory"); // Always highlight factory
+        java.util.regex.Pattern p = java.util.regex.Pattern.compile("\\b([A-Za-z0-9_]+)\\b");
+        java.util.regex.Matcher m = p.matcher(text);
         
-        java.util.regex.Pattern p1 = java.util.regex.Pattern.compile("std::(?:weak|shared|unique)_ptr<[^>]+>\\s+([A-Za-z0-9_]+)\\b");
-        java.util.regex.Matcher m1 = p1.matcher(text);
-        while (m1.find()) vars.add(m1.group(1));
-        
-        java.util.regex.Pattern p2 = java.util.regex.Pattern.compile("\\b([A-Za-z0-9_:]+)\\s*\\**\\s+([A-Za-z0-9_]+)\\s*(?:=|;)");
-        java.util.regex.Matcher m2 = p2.matcher(text);
-        while (m2.find()) {
-            String t = m2.group(1);
-            if (!t.equals("return") && !t.equals("new") && !t.equals("delete")) {
-                vars.add(m2.group(2));
+        while (m.find()) {
+            String word = m.group(1);
+            if (KEYWORDS.contains(word)) {
+                ranges.add(new TextRange(m.start(1), word.length(), null));
             }
         }
+        return ranges;
+    }
+
+    public List<TextRange> getVariableRanges(String text, LanguageDef currentLangDef) {
+        List<TextRange> ranges = new ArrayList<>();
+        if (currentLangDef == null || !currentLangDef.name.equals("CPP")) return ranges;
         
         java.util.regex.Pattern p = java.util.regex.Pattern.compile("\\b([A-Za-z0-9_]+)\\b");
         java.util.regex.Matcher m = p.matcher(text);
         while (m.find()) {
             String word = m.group(1);
-            if (vars.contains(word) && !dictionary.typeMembers.containsKey(word) && !STD_TYPES.contains(word)) {
-                ranges.add(new TextRange(m.start(1), word.length(), null));
+            if (Character.isDigit(word.charAt(0))) continue; // Skip numbers
+            
+            // If it is NOT a Type, NOT a Keyword, and NOT followed by a '(', it is a variable
+            if (!dictionary.typeMembers.containsKey(word) && !STD_TYPES.contains(word) && !KEYWORDS.contains(word)) {
+                int nextIndex = m.end(1);
+                boolean isMethod = false;
+                while (nextIndex < text.length() && Character.isWhitespace(text.charAt(nextIndex))) {
+                    nextIndex++;
+                }
+                if (nextIndex < text.length() && text.charAt(nextIndex) == '(') {
+                    isMethod = true;
+                }
+                
+                if (!isMethod) {
+                    ranges.add(new TextRange(m.start(1), word.length(), null));
+                }
             }
         }
         return ranges;

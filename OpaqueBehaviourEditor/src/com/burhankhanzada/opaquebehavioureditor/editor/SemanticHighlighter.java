@@ -35,10 +35,12 @@ public class SemanticHighlighter {
             return ranges;
         }
         
+        List<TextRange> ignored = getIgnoredRanges(text);
         java.util.regex.Pattern p = java.util.regex.Pattern.compile("\\b([A-Za-z0-9_]+)\\b");
         java.util.regex.Matcher m = p.matcher(text);
         
         while (m.find()) {
+            if (isIgnored(m.start(1), ignored)) continue;
             String word = m.group(1);
             if (dictionary.typeMembers.containsKey(word) || STD_TYPES.contains(word)) {
                 ranges.add(new TextRange(m.start(1), word.length(), null));
@@ -51,10 +53,12 @@ public class SemanticHighlighter {
         List<TextRange> ranges = new ArrayList<>();
         if (currentLangDef == null || !currentLangDef.name.equals("CPP")) return ranges;
         
+        List<TextRange> ignored = getIgnoredRanges(text);
         java.util.regex.Pattern p = java.util.regex.Pattern.compile("\\b([A-Za-z0-9_]+)\\b");
         java.util.regex.Matcher m = p.matcher(text);
         
         while (m.find()) {
+            if (isIgnored(m.start(1), ignored)) continue;
             String word = m.group(1);
             if (KEYWORDS.contains(word)) {
                 ranges.add(new TextRange(m.start(1), word.length(), null));
@@ -67,9 +71,11 @@ public class SemanticHighlighter {
         List<TextRange> ranges = new ArrayList<>();
         if (currentLangDef == null || !currentLangDef.name.equals("CPP")) return ranges;
         
+        List<TextRange> ignored = getIgnoredRanges(text);
         java.util.regex.Pattern p = java.util.regex.Pattern.compile("\\b([A-Za-z0-9_]+)\\b");
         java.util.regex.Matcher m = p.matcher(text);
         while (m.find()) {
+            if (isIgnored(m.start(1), ignored)) continue;
             String word = m.group(1);
             if (Character.isDigit(word.charAt(0))) continue; // Skip numbers
             
@@ -96,14 +102,101 @@ public class SemanticHighlighter {
         List<TextRange> ranges = new ArrayList<>();
         if (currentLangDef == null || !currentLangDef.name.equals("CPP")) return ranges;
         
+        List<TextRange> ignored = getIgnoredRanges(text);
         java.util.regex.Pattern p = java.util.regex.Pattern.compile("\\b([A-Za-z0-9_]+)\\s*\\(");
         java.util.regex.Matcher m = p.matcher(text);
+        
         while (m.find()) {
+            if (isIgnored(m.start(1), ignored)) continue;
             String word = m.group(1);
-            if (!dictionary.typeMembers.containsKey(word) && !STD_TYPES.contains(word)) {
+            // Must not be a keyword like "if (" or "while ("
+            if (!KEYWORDS.contains(word)) {
                 ranges.add(new TextRange(m.start(1), word.length(), null));
             }
         }
         return ranges;
+    }
+
+    public List<TextRange> getCommentRanges(String text) {
+        List<TextRange> comments = new ArrayList<>();
+        int i = 0;
+        int len = text.length();
+        while (i < len) {
+            char c = text.charAt(i);
+            if (c == '/' && i + 1 < len) {
+                if (text.charAt(i + 1) == '/') {
+                    int start = i;
+                    while (i < len && text.charAt(i) != '\n' && text.charAt(i) != '\r') i++;
+                    comments.add(new TextRange(start, i - start, null));
+                    continue;
+                } else if (text.charAt(i + 1) == '*') {
+                    int start = i;
+                    i += 2;
+                    while (i + 1 < len && !(text.charAt(i) == '*' && text.charAt(i + 1) == '/')) i++;
+                    i += 2; // skip */
+                    comments.add(new TextRange(start, Math.min(len, i) - start, null));
+                    continue;
+                }
+            } else if (c == '"' || c == '\'') {
+                // skip strings so they aren't marked as comments
+                char quote = c;
+                i++;
+                while (i < len) {
+                    if (text.charAt(i) == '\\') i += 2;
+                    else if (text.charAt(i) == quote) { i++; break; }
+                    else i++;
+                }
+                continue;
+            }
+            i++;
+        }
+        return comments;
+    }
+
+    public List<TextRange> getStringRanges(String text) {
+        List<TextRange> strings = new ArrayList<>();
+        int i = 0;
+        int len = text.length();
+        while (i < len) {
+            char c = text.charAt(i);
+            if (c == '/' && i + 1 < len && (text.charAt(i + 1) == '/' || text.charAt(i + 1) == '*')) {
+                // skip comments so they aren't marked as strings
+                if (text.charAt(i + 1) == '/') {
+                    while (i < len && text.charAt(i) != '\n' && text.charAt(i) != '\r') i++;
+                } else {
+                    i += 2;
+                    while (i + 1 < len && !(text.charAt(i) == '*' && text.charAt(i + 1) == '/')) i++;
+                    i += 2;
+                }
+                continue;
+            } else if (c == '"' || c == '\'') {
+                int start = i;
+                char quote = c;
+                i++;
+                while (i < len) {
+                    if (text.charAt(i) == '\\') i += 2;
+                    else if (text.charAt(i) == quote) { i++; break; }
+                    else i++;
+                }
+                strings.add(new TextRange(start, Math.min(len, i) - start, null));
+                continue;
+            }
+            i++;
+        }
+        return strings;
+    }
+
+    private List<TextRange> getIgnoredRanges(String text) {
+        List<TextRange> ignored = new ArrayList<>();
+        ignored.addAll(getCommentRanges(text));
+        ignored.addAll(getStringRanges(text));
+        return ignored;
+    }
+    
+    private boolean isIgnored(int offset, List<TextRange> ignoredRanges) {
+        for (TextRange r : ignoredRanges) {
+            if (offset >= r.offset && offset < r.offset + r.length) return true;
+        }
+        return false;
     }
 }

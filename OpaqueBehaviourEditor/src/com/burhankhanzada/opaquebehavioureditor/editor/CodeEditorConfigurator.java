@@ -38,6 +38,8 @@ public class CodeEditorConfigurator {
     private Color methodColor;
     private Color variableColor;
     private Color keywordColor;
+    private Color commentColor;
+    private Color stringColor;
     
     private Color searchHighlightColor;
     private String currentSearchText;
@@ -144,6 +146,8 @@ public class CodeEditorConfigurator {
             methodColor = new Color(display, 220, 220, 170);
             variableColor = new Color(display, 156, 220, 254);
             keywordColor = new Color(display, 197, 134, 192); // Purple (#c586c0)
+            commentColor = new Color(display, 96, 139, 78);   // Green (#608b4e)
+            stringColor = new Color(display, 206, 145, 120);  // Orange (#ce9178)
         } else {
             lineNumColor = new Color(display, new RGB(43, 145, 175));
             separatorColor = new Color(display, new RGB(200, 200, 200));
@@ -154,6 +158,8 @@ public class CodeEditorConfigurator {
             methodColor = new Color(display, 121, 94, 38);   // Dark yellow/brown (#795e26)
             variableColor = new Color(display, 0, 16, 128);  // Dark blue (#001080)
             keywordColor = new Color(display, 175, 0, 219);  // Purple (#af00db)
+            commentColor = new Color(display, 0, 128, 0);    // Green (#008000)
+            stringColor = new Color(display, 163, 21, 21);   // Dark Red (#a31515)
         }
 
         codeText.addDisposeListener(e -> {
@@ -163,6 +169,8 @@ public class CodeEditorConfigurator {
             if (methodColor != null) methodColor.dispose();
             if (variableColor != null) variableColor.dispose();
             if (keywordColor != null) keywordColor.dispose();
+            if (commentColor != null) commentColor.dispose();
+            if (stringColor != null) stringColor.dispose();
             if (searchHighlightColor != null) searchHighlightColor.dispose();
         });
         
@@ -238,6 +246,20 @@ public class CodeEditorConfigurator {
                     List<TextRange> varRanges = semanticHighlighter.getVariableRanges(codeText.getText(), langDef);
                     for (TextRange vr : varRanges) {
                         StyleRange style = new StyleRange(vr.offset, vr.length, variableColor, null);
+                        textPresentation.mergeStyleRange(style);
+                    }
+                    
+                    // String Highlighting
+                    List<TextRange> strRanges = semanticHighlighter.getStringRanges(codeText.getText());
+                    for (TextRange sr : strRanges) {
+                        StyleRange style = new StyleRange(sr.offset, sr.length, stringColor, null);
+                        textPresentation.mergeStyleRange(style);
+                    }
+                    
+                    // Comment Highlighting (Overrides everything else inside the comment)
+                    List<TextRange> commentRanges = semanticHighlighter.getCommentRanges(codeText.getText());
+                    for (TextRange cr : commentRanges) {
+                        StyleRange style = new StyleRange(cr.offset, cr.length, commentColor, null);
                         textPresentation.mergeStyleRange(style);
                     }
                     

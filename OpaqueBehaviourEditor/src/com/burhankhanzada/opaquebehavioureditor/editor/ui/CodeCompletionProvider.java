@@ -209,7 +209,7 @@ public class CodeCompletionProvider {
         try {
             SnippetLibrary.Snippet matchedSnippet = null;
             if (engine.getCurrentLangDef() != null && engine.getCurrentLangDef().name.equals(LanguageMapping.LANG_CPP)) {
-                for (SnippetLibrary.Snippet s : SnippetLibrary.SNIPPETS) {
+                for (SnippetLibrary.Snippet s : SnippetLibrary.getSnippets()) {
                     if (s.label.equals(selected)) {
                         matchedSnippet = s;
                         break;

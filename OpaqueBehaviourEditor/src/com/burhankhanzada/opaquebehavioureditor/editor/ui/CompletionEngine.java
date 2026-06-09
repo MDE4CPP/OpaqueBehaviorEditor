@@ -50,7 +50,7 @@ public class CompletionEngine {
         
         // Add Snippets at the very top of the list!
         if (currentLangDef != null && currentLangDef.name.equals(LanguageMapping.LANG_CPP) && !isMemberAccess) {
-            for (SnippetLibrary.Snippet snip : SnippetLibrary.SNIPPETS) {
+            for (SnippetLibrary.Snippet snip : SnippetLibrary.getSnippets()) {
                 if (snip.keyword.toLowerCase().startsWith(lower)) {
                     if (!matches.contains(snip.label)) {
                         matches.add(snip.label);

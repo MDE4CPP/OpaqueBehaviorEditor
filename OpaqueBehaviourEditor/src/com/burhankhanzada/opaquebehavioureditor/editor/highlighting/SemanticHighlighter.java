@@ -11,6 +11,12 @@ import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageDef;
 
 public class SemanticHighlighter {
 
+    public record HighlightingContext(String text, LanguageDef lang, List<TextRange> ignored) {}
+
+    public HighlightingContext createContext(String text, LanguageDef lang) {
+        return new HighlightingContext(text, lang, getIgnoredRanges(text));
+    }
+
     public static final Set<String> STD_TYPES = Set.of(
         "std", "shared_ptr", "weak_ptr", "unique_ptr", "dynamic_pointer_cast",
         "Bag", "Set", "OrderedSet", "Sequence", "Union", "SubsetUnion",
@@ -29,13 +35,14 @@ public class SemanticHighlighter {
         this.dictionary = dictionary;
     }
 
-    public List<TextRange> getUMLTypeRanges(String text, LanguageDef currentLangDef) {
+    public List<TextRange> getUMLTypeRanges(HighlightingContext ctx) {
         List<TextRange> ranges = new ArrayList<>();
-        if (currentLangDef == null || !currentLangDef.name.equals(LanguageMapping.LANG_CPP) || dictionary.typeMembers.isEmpty()) {
+        if (ctx.lang() == null || !ctx.lang().name.equals(LanguageMapping.LANG_CPP) || dictionary.typeMembers.isEmpty()) {
             return ranges;
         }
         
-        List<TextRange> ignored = getIgnoredRanges(text);
+        List<TextRange> ignored = ctx.ignored();
+        String text = ctx.text();
         java.util.regex.Pattern p = java.util.regex.Pattern.compile("\\b([A-Za-z0-9_]+)\\b");
         java.util.regex.Matcher m = p.matcher(text);
         
@@ -49,11 +56,12 @@ public class SemanticHighlighter {
         return ranges;
     }
 
-    public List<TextRange> getKeywordRanges(String text, LanguageDef currentLangDef) {
+    public List<TextRange> getKeywordRanges(HighlightingContext ctx) {
         List<TextRange> ranges = new ArrayList<>();
-        if (currentLangDef == null || !currentLangDef.name.equals(LanguageMapping.LANG_CPP)) return ranges;
+        if (ctx.lang() == null || !ctx.lang().name.equals(LanguageMapping.LANG_CPP)) return ranges;
         
-        List<TextRange> ignored = getIgnoredRanges(text);
+        List<TextRange> ignored = ctx.ignored();
+        String text = ctx.text();
         java.util.regex.Pattern p = java.util.regex.Pattern.compile("\\b([A-Za-z0-9_]+)\\b");
         java.util.regex.Matcher m = p.matcher(text);
         
@@ -67,11 +75,12 @@ public class SemanticHighlighter {
         return ranges;
     }
 
-    public List<TextRange> getVariableRanges(String text, LanguageDef currentLangDef) {
+    public List<TextRange> getVariableRanges(HighlightingContext ctx) {
         List<TextRange> ranges = new ArrayList<>();
-        if (currentLangDef == null || !currentLangDef.name.equals(LanguageMapping.LANG_CPP)) return ranges;
+        if (ctx.lang() == null || !ctx.lang().name.equals(LanguageMapping.LANG_CPP)) return ranges;
         
-        List<TextRange> ignored = getIgnoredRanges(text);
+        List<TextRange> ignored = ctx.ignored();
+        String text = ctx.text();
         java.util.regex.Pattern p = java.util.regex.Pattern.compile("\\b([A-Za-z0-9_]+)\\b");
         java.util.regex.Matcher m = p.matcher(text);
         while (m.find()) {
@@ -98,11 +107,12 @@ public class SemanticHighlighter {
         return ranges;
     }
 
-    public List<TextRange> getMethodRanges(String text, LanguageDef currentLangDef) {
+    public List<TextRange> getMethodRanges(HighlightingContext ctx) {
         List<TextRange> ranges = new ArrayList<>();
-        if (currentLangDef == null || !currentLangDef.name.equals(LanguageMapping.LANG_CPP)) return ranges;
+        if (ctx.lang() == null || !ctx.lang().name.equals(LanguageMapping.LANG_CPP)) return ranges;
         
-        List<TextRange> ignored = getIgnoredRanges(text);
+        List<TextRange> ignored = ctx.ignored();
+        String text = ctx.text();
         java.util.regex.Pattern p = java.util.regex.Pattern.compile("\\b([A-Za-z0-9_]+)\\s*\\(");
         java.util.regex.Matcher m = p.matcher(text);
         

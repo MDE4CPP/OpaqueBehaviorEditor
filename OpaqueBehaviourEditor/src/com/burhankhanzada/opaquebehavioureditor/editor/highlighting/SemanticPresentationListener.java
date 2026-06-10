@@ -34,29 +34,31 @@ public class SemanticPresentationListener implements ITextPresentationListener {
         if (language == null) language = "";
         LanguageDef langDef = LanguageMapping.getLanguageDef(language);
         
+        SemanticHighlighter.HighlightingContext ctx = semanticHighlighter.createContext(codeText.getText(), langDef);
+        
         // Type Highlighting
-        List<TextRange> typeRanges = semanticHighlighter.getUMLTypeRanges(codeText.getText(), langDef);
+        List<TextRange> typeRanges = semanticHighlighter.getUMLTypeRanges(ctx);
         for (TextRange tr : typeRanges) {
             StyleRange style = new StyleRange(tr.offset, tr.length, themeManager.getUmlTypeColor(), null);
             textPresentation.mergeStyleRange(style);
         }
         
         // Method Highlighting
-        List<TextRange> methodRanges = semanticHighlighter.getMethodRanges(codeText.getText(), langDef);
+        List<TextRange> methodRanges = semanticHighlighter.getMethodRanges(ctx);
         for (TextRange mr : methodRanges) {
             StyleRange style = new StyleRange(mr.offset, mr.length, themeManager.getMethodColor(), null);
             textPresentation.mergeStyleRange(style);
         }
         
         // Keyword Highlighting
-        List<TextRange> keywordRanges = semanticHighlighter.getKeywordRanges(codeText.getText(), langDef);
+        List<TextRange> keywordRanges = semanticHighlighter.getKeywordRanges(ctx);
         for (TextRange kr : keywordRanges) {
             StyleRange style = new StyleRange(kr.offset, kr.length, themeManager.getKeywordColor(), null);
             textPresentation.mergeStyleRange(style);
         }
         
         // Variable Highlighting
-        List<TextRange> varRanges = semanticHighlighter.getVariableRanges(codeText.getText(), langDef);
+        List<TextRange> varRanges = semanticHighlighter.getVariableRanges(ctx);
         for (TextRange vr : varRanges) {
             StyleRange style = new StyleRange(vr.offset, vr.length, themeManager.getVariableColor(), null);
             textPresentation.mergeStyleRange(style);

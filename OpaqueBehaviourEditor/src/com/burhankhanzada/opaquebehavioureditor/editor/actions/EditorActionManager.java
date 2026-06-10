@@ -1,10 +1,27 @@
 package com.burhankhanzada.opaquebehavioureditor.editor.actions;
 
-import org.eclipse.jface.text.source.SourceViewer;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.custom.VerifyKeyListener;
 import org.eclipse.swt.events.VerifyEvent;
+
+import org.eclipse.jface.text.source.SourceViewer;
+import org.eclipse.jface.dialogs.IInputValidator;
+import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITextOperationTarget;
+import org.eclipse.jface.text.ITextViewerExtension;
+import org.eclipse.jface.text.IUndoManager;
+import org.eclipse.jface.window.Window;
 
 import com.burhankhanzada.opaquebehavioureditor.editor.text.AutoFormatter;
 import com.burhankhanzada.opaquebehavioureditor.editor.ui.SimpleFindReplaceDialog;
@@ -25,14 +42,16 @@ public class EditorActionManager {
         public static int DELETE_LINE = 'd';
         public static int GO_TO_LINE = 'l';
         public static int DUPLICATE_LINE = SWT.ARROW_DOWN;
+        public static int RENAME = SWT.F2;
+        public static int RENAME_CTRL = 'r';
     }
 
     private final SourceViewer sourceViewer;
-    private final org.eclipse.jface.text.IUndoManager undoManager;
+    private final IUndoManager undoManager;
     private final SimpleFindReplaceDialog findDialog;
     private final EditorThemeManager themeManager;
 
-    public EditorActionManager(SourceViewer sourceViewer, org.eclipse.jface.text.IUndoManager undoManager, 
+    public EditorActionManager(SourceViewer sourceViewer, IUndoManager undoManager, 
                                SimpleFindReplaceDialog findDialog, EditorThemeManager themeManager) {
         this.sourceViewer = sourceViewer;
         this.undoManager = undoManager;
@@ -86,12 +105,15 @@ public class EditorActionManager {
                 } else if (isCtrl && isAlt && e.keyCode == KeyBindings.DUPLICATE_LINE) {
                     duplicateLine();
                     e.doit = false;
+                } else if (e.keyCode == KeyBindings.RENAME || (isCtrl && e.keyCode == KeyBindings.RENAME_CTRL)) {
+                    renameSymbol();
+                    e.doit = false;
                 } else if (e.keyCode == SWT.TAB) {
                     if (isShift) {
-                        sourceViewer.doOperation(org.eclipse.jface.text.ITextOperationTarget.SHIFT_LEFT);
+                        sourceViewer.doOperation(ITextOperationTarget.SHIFT_LEFT);
                         e.doit = false;
                     } else if (codeText.getSelectionCount() > 0) {
-                        sourceViewer.doOperation(org.eclipse.jface.text.ITextOperationTarget.SHIFT_RIGHT);
+                        sourceViewer.doOperation(ITextOperationTarget.SHIFT_RIGHT);
                         e.doit = false;
                     }
                 }
@@ -100,7 +122,7 @@ public class EditorActionManager {
     }
 
     private void formatDocument() {
-        org.eclipse.jface.text.IDocument doc = sourceViewer.getDocument();
+        IDocument doc = sourceViewer.getDocument();
         StyledText codeText = sourceViewer.getTextWidget();
         String lang = (String) codeText.getData("currentLanguage");
         if (lang == null) lang = "";
@@ -109,19 +131,19 @@ public class EditorActionManager {
         String formatted = AutoFormatter.format(currentText, lang);
         
         if (!currentText.equals(formatted)) {
-            if (sourceViewer instanceof org.eclipse.jface.text.ITextViewerExtension) {
-                ((org.eclipse.jface.text.ITextViewerExtension) sourceViewer).getRewriteTarget().beginCompoundChange();
+            if (sourceViewer instanceof ITextViewerExtension) {
+                ((ITextViewerExtension) sourceViewer).getRewriteTarget().beginCompoundChange();
             }
             doc.set(formatted);
-            if (sourceViewer instanceof org.eclipse.jface.text.ITextViewerExtension) {
-                ((org.eclipse.jface.text.ITextViewerExtension) sourceViewer).getRewriteTarget().endCompoundChange();
+            if (sourceViewer instanceof ITextViewerExtension) {
+                ((ITextViewerExtension) sourceViewer).getRewriteTarget().endCompoundChange();
             }
         }
     }
 
     private void deleteLine() {
-        org.eclipse.jface.text.IDocument doc = sourceViewer.getDocument();
-        org.eclipse.swt.graphics.Point sel = sourceViewer.getTextWidget().getSelection();
+        IDocument doc = sourceViewer.getDocument();
+        Point sel = sourceViewer.getTextWidget().getSelection();
         try {
             int startLine = doc.getLineOfOffset(sel.x);
             int endLine = doc.getLineOfOffset(sel.y > sel.x ? sel.y - 1 : sel.x);
@@ -136,19 +158,19 @@ public class EditorActionManager {
                 startOffset = doc.getLineOffset(startLine) - doc.getLineDelimiter(startLine - 1).length();
             }
             
-            if (sourceViewer instanceof org.eclipse.jface.text.ITextViewerExtension) {
-                ((org.eclipse.jface.text.ITextViewerExtension) sourceViewer).getRewriteTarget().beginCompoundChange();
+            if (sourceViewer instanceof ITextViewerExtension) {
+                ((ITextViewerExtension) sourceViewer).getRewriteTarget().beginCompoundChange();
             }
             doc.replace(startOffset, endOffset - startOffset, "");
-            if (sourceViewer instanceof org.eclipse.jface.text.ITextViewerExtension) {
-                ((org.eclipse.jface.text.ITextViewerExtension) sourceViewer).getRewriteTarget().endCompoundChange();
+            if (sourceViewer instanceof ITextViewerExtension) {
+                ((ITextViewerExtension) sourceViewer).getRewriteTarget().endCompoundChange();
             }
         } catch (Exception e) {}
     }
 
     private void duplicateLine() {
-        org.eclipse.jface.text.IDocument doc = sourceViewer.getDocument();
-        org.eclipse.swt.graphics.Point sel = sourceViewer.getTextWidget().getSelection();
+        IDocument doc = sourceViewer.getDocument();
+        Point sel = sourceViewer.getTextWidget().getSelection();
         try {
             int startLine = doc.getLineOfOffset(sel.x);
             int endLine = doc.getLineOfOffset(sel.y > sel.x ? sel.y - 1 : sel.x);
@@ -166,12 +188,12 @@ public class EditorActionManager {
                 textToDuplicate = delim + textToDuplicate;
             }
             
-            if (sourceViewer instanceof org.eclipse.jface.text.ITextViewerExtension) {
-                ((org.eclipse.jface.text.ITextViewerExtension) sourceViewer).getRewriteTarget().beginCompoundChange();
+            if (sourceViewer instanceof ITextViewerExtension) {
+                ((ITextViewerExtension) sourceViewer).getRewriteTarget().beginCompoundChange();
             }
             doc.replace(endOffset, 0, textToDuplicate);
-            if (sourceViewer instanceof org.eclipse.jface.text.ITextViewerExtension) {
-                ((org.eclipse.jface.text.ITextViewerExtension) sourceViewer).getRewriteTarget().endCompoundChange();
+            if (sourceViewer instanceof ITextViewerExtension) {
+                ((ITextViewerExtension) sourceViewer).getRewriteTarget().endCompoundChange();
             }
             
             sourceViewer.getTextWidget().setSelection(endOffset, endOffset + textToDuplicate.length());
@@ -179,10 +201,10 @@ public class EditorActionManager {
     }
 
     private void goToLine() {
-        org.eclipse.swt.widgets.Shell shell = sourceViewer.getTextWidget().getShell();
-        org.eclipse.jface.dialogs.InputDialog dialog = new org.eclipse.jface.dialogs.InputDialog(
+        Shell shell = sourceViewer.getTextWidget().getShell();
+        InputDialog dialog = new InputDialog(
             shell, "Go to Line", "Enter line number (1 - " + sourceViewer.getDocument().getNumberOfLines() + "):", "",
-            new org.eclipse.jface.dialogs.IInputValidator() {
+            new IInputValidator() {
                 @Override
                 public String isValid(String newText) {
                     try {
@@ -197,7 +219,7 @@ public class EditorActionManager {
                 }
             });
             
-        if (dialog.open() == org.eclipse.jface.window.Window.OK) {
+        if (dialog.open() == Window.OK) {
             try {
                 int line = Integer.parseInt(dialog.getValue()) - 1;
                 int offset = sourceViewer.getDocument().getLineOffset(line);
@@ -208,15 +230,15 @@ public class EditorActionManager {
     }
 
     private void toggleComments() {
-        org.eclipse.jface.text.IDocument doc = sourceViewer.getDocument();
-        org.eclipse.swt.graphics.Point sel = sourceViewer.getTextWidget().getSelection();
+        IDocument doc = sourceViewer.getDocument();
+        Point sel = sourceViewer.getTextWidget().getSelection();
         try {
             int startLine = doc.getLineOfOffset(sel.x);
             int endLine = doc.getLineOfOffset(sel.y > sel.x ? sel.y - 1 : sel.x);
             
             boolean allCommented = true;
             for (int i = startLine; i <= endLine; i++) {
-                org.eclipse.jface.text.IRegion lineRegion = doc.getLineInformation(i);
+                IRegion lineRegion = doc.getLineInformation(i);
                 String line = doc.get(lineRegion.getOffset(), lineRegion.getLength());
                 if (!line.trim().isEmpty() && !line.trim().startsWith("//")) {
                     allCommented = false;
@@ -224,12 +246,12 @@ public class EditorActionManager {
                 }
             }
             
-            if (sourceViewer instanceof org.eclipse.jface.text.ITextViewerExtension) {
-                ((org.eclipse.jface.text.ITextViewerExtension) sourceViewer).getRewriteTarget().beginCompoundChange();
+            if (sourceViewer instanceof ITextViewerExtension) {
+                ((ITextViewerExtension) sourceViewer).getRewriteTarget().beginCompoundChange();
             }
             
             for (int i = startLine; i <= endLine; i++) {
-                org.eclipse.jface.text.IRegion lineRegion = doc.getLineInformation(i);
+                IRegion lineRegion = doc.getLineInformation(i);
                 String line = doc.get(lineRegion.getOffset(), lineRegion.getLength());
                 if (allCommented) {
                     int idx = line.indexOf("//");
@@ -241,8 +263,8 @@ public class EditorActionManager {
                 }
             }
             
-            if (sourceViewer instanceof org.eclipse.jface.text.ITextViewerExtension) {
-                ((org.eclipse.jface.text.ITextViewerExtension) sourceViewer).getRewriteTarget().endCompoundChange();
+            if (sourceViewer instanceof ITextViewerExtension) {
+                ((ITextViewerExtension) sourceViewer).getRewriteTarget().endCompoundChange();
             }
             
             int newStart = doc.getLineOffset(startLine);
@@ -254,8 +276,70 @@ public class EditorActionManager {
             }
             sourceViewer.getTextWidget().setSelection(newStart, newEnd);
             
-        } catch (org.eclipse.jface.text.BadLocationException e) {
+        } catch (BadLocationException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void renameSymbol() {
+        IDocument doc = sourceViewer.getDocument();
+        int offset = sourceViewer.getTextWidget().getCaretOffset();
+        String text = doc.get();
+        
+        // Find word boundaries around caret
+        int start = offset;
+        while (start > 0 && Character.isJavaIdentifierPart(text.charAt(start - 1))) {
+            start--;
+        }
+        int end = offset;
+        while (end < text.length() && Character.isJavaIdentifierPart(text.charAt(end))) {
+            end++;
+        }
+        
+        if (start >= end) return; // Not on a word
+        
+        String oldName = text.substring(start, end);
+        
+        Shell shell = sourceViewer.getTextWidget().getShell();
+        InputDialog dialog = new InputDialog(
+            shell, "Rename Symbol", "Enter new name for '" + oldName + "':", oldName,
+            new IInputValidator() {
+                @Override
+                public String isValid(String newText) {
+                    if (newText.trim().isEmpty()) return "Name cannot be empty.";
+                    if (newText.equals(oldName)) return "Name must be different.";
+                    return null;
+                }
+            });
+            
+        if (dialog.open() == Window.OK) {
+            String newName = dialog.getValue().trim();
+            
+            if (sourceViewer instanceof ITextViewerExtension) {
+                ((ITextViewerExtension) sourceViewer).getRewriteTarget().beginCompoundChange();
+            }
+            
+            try {
+                // Find and replace all whole-word occurrences of oldName
+                Pattern p = Pattern.compile("\\b" + Pattern.quote(oldName) + "\\b");
+                Matcher m = p.matcher(text);
+                
+                // Replace from back to front to avoid offset shifting issues
+                List<Integer> offsets = new ArrayList<>();
+                while (m.find()) {
+                    offsets.add(0, m.start());
+                }
+                
+                for (int occOffset : offsets) {
+                    doc.replace(occOffset, oldName.length(), newName);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (sourceViewer instanceof ITextViewerExtension) {
+                    ((ITextViewerExtension) sourceViewer).getRewriteTarget().endCompoundChange();
+                }
+            }
         }
     }
 }

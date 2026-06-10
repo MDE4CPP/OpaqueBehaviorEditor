@@ -15,6 +15,7 @@ import org.eclipse.tm4e.ui.text.TMPresentationReconciler;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelValidator;
 import com.burhankhanzada.opaquebehavioureditor.editor.actions.EditorActionManager;
 import com.burhankhanzada.opaquebehavioureditor.editor.actions.FoldingAction;
+import com.burhankhanzada.opaquebehavioureditor.editor.quickfix.QuickFixAction;
 import com.burhankhanzada.opaquebehavioureditor.editor.folding.FoldingManager;
 import com.burhankhanzada.opaquebehavioureditor.editor.folding.FoldingRulerColumn;
 import com.burhankhanzada.opaquebehavioureditor.editor.highlighting.EditorThemeManager;
@@ -35,6 +36,7 @@ public class CodeEditorConfigurator {
     private EditorActionManager actionManager;
     private FoldingManager foldingManager;
     private FoldingAction foldingAction;
+    private QuickFixAction quickFixAction;
 
     public CodeEditorConfigurator(SemanticHighlighter semanticHighlighter, ModelValidator modelValidator) {
         this.semanticHighlighter = semanticHighlighter;
@@ -68,7 +70,8 @@ public class CodeEditorConfigurator {
         SimpleFindReplaceDialog findDialog = new SimpleFindReplaceDialog(parent.getShell(), sourceViewer.getFindReplaceTarget(), this);
         
         // Delegate keyboard shortcuts and actions
-        this.actionManager = new EditorActionManager(sourceViewer, undoManager, findDialog, themeManager, foldingAction);
+        this.quickFixAction = new QuickFixAction(sourceViewer, modelValidator);
+        this.actionManager = new EditorActionManager(sourceViewer, undoManager, findDialog, themeManager, foldingAction, quickFixAction);
         codeText.addVerifyKeyListener(actionManager.createVerifyKeyListener());
     }
 

@@ -10,6 +10,7 @@ import org.eclipse.jface.text.IUndoManager;
 import org.eclipse.jface.text.source.SourceViewer;
 
 import com.burhankhanzada.opaquebehavioureditor.editor.highlighting.EditorThemeManager;
+import com.burhankhanzada.opaquebehavioureditor.editor.quickfix.QuickFixAction;
 import com.burhankhanzada.opaquebehavioureditor.editor.ui.SimpleFindReplaceDialog;
 
 public class EditorActionManager {
@@ -31,6 +32,7 @@ public class EditorActionManager {
         public static int RENAME_CTRL = 'r';
         public static int FOLD_COLLAPSE = '[';
         public static int FOLD_EXPAND = ']';
+        public static int QUICK_FIX = '.';
     }
 
     private final SourceViewer sourceViewer;
@@ -38,15 +40,17 @@ public class EditorActionManager {
     private final SimpleFindReplaceDialog findDialog;
     private final EditorThemeManager themeManager;
     private final FoldingAction foldingAction;
+    private final QuickFixAction quickFixAction;
 
     public EditorActionManager(SourceViewer sourceViewer, IUndoManager undoManager, 
                                SimpleFindReplaceDialog findDialog, EditorThemeManager themeManager,
-                               FoldingAction foldingAction) {
+                               FoldingAction foldingAction, QuickFixAction quickFixAction) {
         this.sourceViewer = sourceViewer;
         this.undoManager = undoManager;
         this.findDialog = findDialog;
         this.themeManager = themeManager;
         this.foldingAction = foldingAction;
+        this.quickFixAction = quickFixAction;
     }
 
     public VerifyKeyListener createVerifyKeyListener() {
@@ -114,6 +118,11 @@ public class EditorActionManager {
                 } else if (isCtrl && isShift && e.keyCode == KeyBindings.FOLD_EXPAND) {
                     if (foldingAction != null) {
                         foldingAction.expandCurrentRegion();
+                    }
+                    e.doit = false;
+                } else if (isCtrl && !isShift && e.keyCode == KeyBindings.QUICK_FIX) {
+                    if (quickFixAction != null) {
+                        quickFixAction.execute();
                     }
                     e.doit = false;
                 }

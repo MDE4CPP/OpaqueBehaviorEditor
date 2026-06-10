@@ -127,11 +127,11 @@ public class EditorInteractionHandler {
             if (contextType.startsWith("std::shared_ptr<")) {
                 contextType = contextType.substring(16, contextType.length() - 1);
             }
-            if (dictionary.classElements.containsKey(contextType)) {
-                return dictionary.classElements.get(contextType).get(word);
+            if (dictionary.getClassElements().containsKey(contextType)) {
+                return dictionary.getClassElements().get(contextType).get(word);
             }
         } else {
-            return dictionary.globalElements.get(word);
+            return dictionary.getGlobalElements().get(word);
         }
         return null;
     }

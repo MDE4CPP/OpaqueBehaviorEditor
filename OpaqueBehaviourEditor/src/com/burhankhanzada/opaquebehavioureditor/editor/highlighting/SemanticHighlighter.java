@@ -37,7 +37,7 @@ public class SemanticHighlighter {
 
     public List<TextRange> getUMLTypeRanges(HighlightingContext ctx) {
         List<TextRange> ranges = new ArrayList<>();
-        if (ctx.lang() == null || !ctx.lang().name.equals(LanguageMapping.LANG_CPP) || dictionary.typeMembers.isEmpty()) {
+        if (ctx.lang() == null || !ctx.lang().name.equals(LanguageMapping.LANG_CPP) || dictionary.getTypeMembers().isEmpty()) {
             return ranges;
         }
         
@@ -49,7 +49,7 @@ public class SemanticHighlighter {
         while (m.find()) {
             if (isIgnored(m.start(1), ignored)) continue;
             String word = m.group(1);
-            if (dictionary.typeMembers.containsKey(word) || STD_TYPES.contains(word)) {
+            if (dictionary.getTypeMembers().containsKey(word) || STD_TYPES.contains(word)) {
                 ranges.add(new TextRange(m.start(1), word.length(), null));
             }
         }
@@ -89,7 +89,7 @@ public class SemanticHighlighter {
             if (Character.isDigit(word.charAt(0))) continue; // Skip numbers
             
             // If it is NOT a Type, NOT a Keyword, and NOT followed by a '(', it is a variable
-            if (!dictionary.typeMembers.containsKey(word) && !STD_TYPES.contains(word) && !KEYWORDS.contains(word)) {
+            if (!dictionary.getTypeMembers().containsKey(word) && !STD_TYPES.contains(word) && !KEYWORDS.contains(word)) {
                 int nextIndex = m.end(1);
                 boolean isMethod = false;
                 while (nextIndex < text.length() && Character.isWhitespace(text.charAt(nextIndex))) {

@@ -29,18 +29,18 @@ public class SemanticTextHover implements ITextHover {
             String text = textViewer.getDocument().get(hoverRegion.getOffset(), hoverRegion.getLength());
             if (text == null || text.isBlank()) return null;
             
-            EObject element = dictionary.globalElements.get(text);
+            EObject element = dictionary.getGlobalElements().get(text);
             if (element != null) {
                 return formatHoverInfo(element, text);
             }
             
             // Check if it's a known type
-            if (dictionary.typeMembers.containsKey(text)) {
+            if (dictionary.getTypeMembers().containsKey(text)) {
                 return "Model Class: " + text;
             }
             
             // Check if it's a method on a known type
-            for (Map.Entry<String, Map<String, EObject>> classEntry : dictionary.classElements.entrySet()) {
+            for (Map.Entry<String, Map<String, EObject>> classEntry : dictionary.getClassElements().entrySet()) {
                 if (classEntry.getValue().containsKey(text)) {
                     return formatHoverInfo(classEntry.getValue().get(text), text) + "\n(Member of " + classEntry.getKey() + ")";
                 }

@@ -12,7 +12,7 @@ public class TextScanState {
 
     /**
      * Processes the character at index i and returns the number of extra characters to skip.
-     * (e.g. returns 1 for 2-character tokens like "//", "/*", "*/").
+     * (e.g. returns 1 for 2-character tokens like single-line and multi-line comment markers).
      */
     public int process(String text, int i) {
         char c = text.charAt(i);

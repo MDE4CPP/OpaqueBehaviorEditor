@@ -1,7 +1,9 @@
 package com.burhankhanzada.opaquebehavioureditor.model;
 
 import java.util.Map;
+import java.util.HashMap;
 import java.util.TreeSet;
+import java.util.Collections;
 
 import org.eclipse.emf.ecore.EObject;
 
@@ -10,15 +12,29 @@ import org.eclipse.emf.ecore.EObject;
  * so they can be referenced quickly for auto-completion and hyperlink navigation.
  */
 public class ModelDictionary {
-    /** General words that appear in the autocomplete popup (e.g., class names, global properties). */
-    public final TreeSet<String> autocompleteWords = new TreeSet<>();
+    private final TreeSet<String> autocompleteWords = new TreeSet<>();
+    private final Map<String, Map<String, EObject>> classElements = new HashMap<>();
+    private final Map<String, EObject> globalElements = new HashMap<>();
+    private final Map<String, Map<String, String>> typeMembers = new HashMap<>();
+
+    public java.util.Set<String> getAutocompleteWords() { return Collections.unmodifiableSet(autocompleteWords); }
+    public Map<String, Map<String, EObject>> getClassElements() { return Collections.unmodifiableMap(classElements); }
+    public Map<String, EObject> getGlobalElements() { return Collections.unmodifiableMap(globalElements); }
+    public Map<String, Map<String, String>> getTypeMembers() { return Collections.unmodifiableMap(typeMembers); }
+
+    public void addAutocompleteWord(String word) { autocompleteWords.add(word); }
     
-    /** Maps a class name to its members (properties/operations) mapped to their corresponding UML EObjects. */
-    public final Map<String, Map<String, EObject>> classElements = new java.util.HashMap<>();
-    
-    /** Maps a globally available word (like a factory method or a root property) to its UML EObject. */
-    public final Map<String, EObject> globalElements = new java.util.HashMap<>();
-    
-    /** Maps a class name to its members mapped to their string return types (used for autocomplete context resolution). */
-    public final Map<String, Map<String, String>> typeMembers = new java.util.HashMap<>();
+    public void addGlobalElement(String name, EObject obj) { globalElements.put(name, obj); }
+
+    public void addClassElement(String className, String memberName, EObject obj) {
+        classElements.computeIfAbsent(className, k -> new HashMap<>()).put(memberName, obj);
+    }
+
+    public void addTypeMember(String className, String memberName, String returnType) {
+        typeMembers.computeIfAbsent(className, k -> new HashMap<>()).put(memberName, returnType);
+    }
+
+    public void addTypeMemberMap(String className) {
+        typeMembers.putIfAbsent(className, new HashMap<>());
+    }
 }

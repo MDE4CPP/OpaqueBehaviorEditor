@@ -26,13 +26,11 @@ public class SemanticHighlighterTest {
     public void setUp() {
         dictionary = new ModelDictionary();
         // Add some dummy UML types and methods
-        dictionary.classElements.put("Library", new java.util.HashMap<>());
-        dictionary.classElements.put("Book", new java.util.HashMap<>());
+        dictionary.addClassElement("Library", "dummy", null);
+        dictionary.addClassElement("Book", "dummy", null);
         
-        java.util.Map<String, String> libraryMethods = new java.util.HashMap<>();
-        libraryMethods.put("createBook", "uml::Operation");
-        libraryMethods.put("printLibrary", "uml::Operation");
-        dictionary.typeMembers.put("Library", libraryMethods);
+        dictionary.addTypeMember("Library", "createBook", "uml::Operation");
+        dictionary.addTypeMember("Library", "printLibrary", "uml::Operation");
 
         highlighter = new SemanticHighlighter(dictionary);
         validator = new ModelValidator(dictionary);
@@ -42,7 +40,8 @@ public class SemanticHighlighterTest {
     @Test
     public void testUMLTypeHighlighting() {
         String code = "std::shared_ptr<Library> lib = factory->createLibrary();";
-        List<TextRange> typeRanges = highlighter.getUMLTypeRanges(code, cppLangDef);
+        SemanticHighlighter.HighlightingContext ctx = highlighter.createContext(code, cppLangDef);
+        List<TextRange> typeRanges = highlighter.getUMLTypeRanges(ctx);
         
         assertEquals("Should find exactly 3 UML types (std, shared_ptr, Library)", 3, typeRanges.size());
         
@@ -54,7 +53,8 @@ public class SemanticHighlighterTest {
     @Test
     public void testMethodHighlighting() {
         String code = "lib->printLibrary();";
-        List<TextRange> methodRanges = highlighter.getMethodRanges(code, cppLangDef);
+        SemanticHighlighter.HighlightingContext ctx = highlighter.createContext(code, cppLangDef);
+        List<TextRange> methodRanges = highlighter.getMethodRanges(ctx);
         
         assertEquals("Should find exactly 1 method", 1, methodRanges.size());
         

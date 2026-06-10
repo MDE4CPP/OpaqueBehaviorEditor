@@ -1,6 +1,5 @@
 package com.burhankhanzada.opaquebehavioureditor.model;
 
-import java.util.HashMap;
 import java.util.Set;
 
 import org.eclipse.emf.common.util.TreeIterator;
@@ -23,8 +22,8 @@ public class EcoreModelHarvester extends AbstractModelHarvester {
         }
         
         if (ePackage.getName() != null && !ePackage.getName().isBlank()) {
-            dictionary.typeMembers.putIfAbsent(ePackage.getName(), new HashMap<>());
-            dictionary.typeMembers.putIfAbsent(ePackage.getName() + "_ecore", new HashMap<>());
+            dictionary.addTypeMemberMap(ePackage.getName());
+            dictionary.addTypeMemberMap(ePackage.getName() + "_ecore");
         }
 
         TreeIterator<EObject> it = ePackage.eAllContents();

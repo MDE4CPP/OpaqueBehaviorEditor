@@ -58,8 +58,8 @@ public class ExpressionParser {
                 currentType = resolveVariableType(part, fullText);
             } else {
                 // Method or property on currentType
-                if (currentType != null && dictionary.typeMembers.containsKey(currentType)) {
-                    Map<String, String> members = dictionary.typeMembers.get(currentType);
+                if (currentType != null && dictionary.getTypeMembers().containsKey(currentType)) {
+                    Map<String, String> members = dictionary.getTypeMembers().get(currentType);
                     currentType = members.get(part); // Get the return type!
                 } else {
                     currentType = null;

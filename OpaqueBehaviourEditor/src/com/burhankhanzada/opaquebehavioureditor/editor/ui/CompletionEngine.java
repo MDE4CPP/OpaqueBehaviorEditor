@@ -35,7 +35,7 @@ public class CompletionEngine {
             for (String kw : currentLangDef.keywords) completionWords.add(kw);
             for (String tp : currentLangDef.types)    completionWords.add(tp);
         }
-        completionWords.addAll(dictionary.autocompleteWords);
+        completionWords.addAll(dictionary.getAutocompleteWords());
     }
 
     public LanguageDef getCurrentLangDef() {
@@ -63,7 +63,7 @@ public class CompletionEngine {
             allowedMembers = new TreeSet<>();
             
             // By default, allow ANY member from any type as a fallback
-            for (Map<String, String> members : dictionary.typeMembers.values()) {
+            for (Map<String, String> members : dictionary.getTypeMembers().values()) {
                 allowedMembers.addAll(members.keySet());
             }
             if (currentLangDef != null && currentLangDef.name.equals(LanguageMapping.LANG_CPP)) {
@@ -79,9 +79,9 @@ public class CompletionEngine {
                     contextType.startsWith("Union<") || contextType.startsWith("SubsetUnion<")) {
                     allowedMembers.clear(); // Only suggest collection methods
                     for (String m : ModelValidator.MDE4CPP_COLLECTION_METHODS) allowedMembers.add(m);
-                } else if (dictionary.typeMembers.containsKey(contextType)) {
-                    // Exact type found, replace fallback with specific members
-                    allowedMembers = new TreeSet<>(dictionary.typeMembers.get(contextType).keySet());
+                } else if (dictionary.getTypeMembers().containsKey(contextType)) {
+                    // It's a regular known type
+                    allowedMembers = new TreeSet<>(dictionary.getTypeMembers().get(contextType).keySet());
                 }
             }
         }

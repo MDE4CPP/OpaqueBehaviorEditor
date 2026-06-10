@@ -1,7 +1,5 @@
 package com.burhankhanzada.opaquebehavioureditor.model;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import org.eclipse.emf.ecore.EObject;
 
@@ -13,15 +11,15 @@ public abstract class AbstractModelHarvester {
     protected static void registerType(String typeName, EObject obj, Set<String> contextTypes, ModelDictionary dictionary) {
         if (typeName != null && !typeName.isBlank()) {
             contextTypes.add(typeName);
-            dictionary.autocompleteWords.add(typeName);
-            dictionary.globalElements.put(typeName, obj);
+            dictionary.addAutocompleteWord(typeName);
+            dictionary.addGlobalElement(typeName, obj);
         }
     }
 
     protected static void registerClassCreate(String className, EObject obj, ModelDictionary dictionary) {
         if (className != null && !className.isBlank()) {
-            dictionary.autocompleteWords.add("create" + className);
-            dictionary.globalElements.put("create" + className, obj);
+            dictionary.addAutocompleteWord("create" + className);
+            dictionary.addGlobalElement("create" + className, obj);
         }
     }
 
@@ -29,53 +27,47 @@ public abstract class AbstractModelHarvester {
             boolean isMany, boolean isOrdered, boolean isUnique, EObject p, ModelDictionary dictionary) {
         if (className == null || className.isBlank() || pName == null || pName.isBlank()) return;
         
-        Map<String, String> members = dictionary.typeMembers.computeIfAbsent(className, k -> new HashMap<>());
-        Map<String, EObject> elemMembers = dictionary.classElements.computeIfAbsent(className, k -> new HashMap<>());
-        
         String retType = computeCollectionType(typeName, isMany, isOrdered, isUnique);
         
-        members.put(pName, retType);
-        elemMembers.put(pName, p);
+        dictionary.addTypeMember(className, pName, retType);
+        dictionary.addClassElement(className, pName, p);
         String cap = pName.substring(0, 1).toUpperCase() + pName.substring(1);
-        members.put("get" + cap, retType);
-        elemMembers.put("get" + cap, p);
-        members.put("set" + cap, "void");
-        elemMembers.put("set" + cap, p);
+        dictionary.addTypeMember(className, "get" + cap, retType);
+        dictionary.addClassElement(className, "get" + cap, p);
+        dictionary.addTypeMember(className, "set" + cap, "void");
+        dictionary.addClassElement(className, "set" + cap, p);
     }
     
     protected static void registerOperationMember(String className, String opName, String typeName, 
             boolean isMany, boolean isOrdered, boolean isUnique, EObject op, ModelDictionary dictionary) {
         if (className == null || className.isBlank() || opName == null || opName.isBlank()) return;
         
-        Map<String, String> members = dictionary.typeMembers.computeIfAbsent(className, k -> new HashMap<>());
-        Map<String, EObject> elemMembers = dictionary.classElements.computeIfAbsent(className, k -> new HashMap<>());
-        
         String retType = computeCollectionType(typeName, isMany, isOrdered, isUnique);
-        members.put(opName, retType);
-        elemMembers.put(opName, op);
+        dictionary.addTypeMember(className, opName, retType);
+        dictionary.addClassElement(className, opName, op);
     }
 
     protected static void registerGlobalFeature(String pName, String typeName, String ownerName, EObject p, ModelDictionary dictionary) {
         if (pName != null && !pName.isBlank()) {
-            dictionary.autocompleteWords.add(pName);
-            dictionary.globalElements.put(pName, p);
+            dictionary.addAutocompleteWord(pName);
+            dictionary.addGlobalElement(pName, p);
             String cap = pName.substring(0, 1).toUpperCase() + pName.substring(1);
-            dictionary.autocompleteWords.add("get" + cap);
-            dictionary.globalElements.put("get" + cap, p);
-            dictionary.autocompleteWords.add("set" + cap);
-            dictionary.globalElements.put("set" + cap, p);
+            dictionary.addAutocompleteWord("get" + cap);
+            dictionary.addGlobalElement("get" + cap, p);
+            dictionary.addAutocompleteWord("set" + cap);
+            dictionary.addGlobalElement("set" + cap, p);
             
             if (typeName != null && ownerName != null) {
-                dictionary.autocompleteWords.add("create" + typeName + "_as_" + pName + "_in_" + ownerName);
-                dictionary.globalElements.put("create" + typeName + "_as_" + pName + "_in_" + ownerName, p);
+                dictionary.addAutocompleteWord("create" + typeName + "_as_" + pName + "_in_" + ownerName);
+                dictionary.addGlobalElement("create" + typeName + "_as_" + pName + "_in_" + ownerName, p);
             }
         }
     }
     
     protected static void registerGlobalOperation(String opName, EObject op, ModelDictionary dictionary) {
         if (opName != null && !opName.isBlank()) {
-            dictionary.autocompleteWords.add(opName);
-            dictionary.globalElements.put(opName, op);
+            dictionary.addAutocompleteWord(opName);
+            dictionary.addGlobalElement(opName, op);
         }
     }
 

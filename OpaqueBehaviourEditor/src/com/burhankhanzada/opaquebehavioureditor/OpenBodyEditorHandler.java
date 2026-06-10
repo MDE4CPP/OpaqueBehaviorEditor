@@ -60,7 +60,8 @@ public class OpenBodyEditorHandler extends AbstractHandler {
 
         Set<String> contextTypes = new HashSet<>();
         ModelDictionary dictionary = new ModelDictionary();
-        dictionary.autocompleteWords.add("factory");
+        dictionary.addAutocompleteWord("factory");
+        dictionary.addGlobalElement("factory", ((org.eclipse.emf.ecore.EObject) element).eContainer());
         
         IWorkbenchPart activePart = HandlerUtil.getActivePart(event);
         ISelectionProvider selectionProvider = 

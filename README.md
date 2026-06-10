@@ -31,6 +31,7 @@ Instead of relying on basic, unformatted text boxes for defining model behaviors
 - Custom, real-time syntax highlighter that goes beyond basic keywords.
 - Visually distinguishes between Standard Types (e.g., `std::shared_ptr`), UML Model Types, Variables, Methods, Strings, and Comments.
 - **Find and Replace**: Integrated search dialog with full highlighting support for "Find All" matches across the code block.
+- **Code Folding**: Collapse and expand code blocks (e.g., inside curly braces) to easily navigate large files, complete with a visual folding ruler.
 - **Line Numbers**: Displays a dedicated line number ruler in the editor margin for easy code navigation.
 - **Bracket Matching**: Highlights corresponding opening and closing brackets (`()`, `{}`, `[]`) to help you easily track nested code scopes.
 - **Current Line Highlighting**: Subtly highlights the active line your cursor is on for improved focus.
@@ -51,6 +52,7 @@ Instead of relying on basic, unformatted text boxes for defining model behaviors
 
 - Validates the written code against the model dictionary to ensure you aren't referencing properties or types that do not exist in the UML scope.
 - **Error Markers** appear directly in the editor gutter when validation fails or syntax errors are detected.
+- **Quick-Fix Code Actions**: Place your cursor over a semantic validation error (e.g., undefined method) and press `Ctrl + .` to view and apply "Did you mean...?" suggestions powered by an intelligent edit-distance algorithm.
 
 ### 💬 Rich Tooltips & Hovers
 
@@ -79,6 +81,9 @@ Instead of relying on basic, unformatted text boxes for defining model behaviors
 - `Alt + Z` (`Option + Z`): Toggle word wrap.
 - `Ctrl + S` (`Cmd + S`): Quickly save the currently edited OpaqueBehaviour body.
 - `Ctrl + Click` (`Cmd + Click`): Navigate to the underlying model element for the hovered variable/method.
+- `Ctrl + .` (`Cmd + .`): Trigger Quick-Fix suggestions for validation errors.
+- `Ctrl + Shift + [` (`Cmd + Shift + [`): Collapse the current code block.
+- `Ctrl + Shift + ]` (`Cmd + Shift + ]`): Expand the current code block.
 - `TAB`: Instantly jump between variable placeholders when a code snippet is expanded.
 
 ## ⚙️ Customizing Snippets

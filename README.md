@@ -6,11 +6,11 @@
 
 A specialized Eclipse Plugin designed to provide a rich, intelligent editing experience for UML `OpaqueBehavior` bodies and Ecore model annotations. It is particularly well-suited for developers writing C++ behaviors intended for the **MDE4CPP** (Model-Driven Engineering for C++) code generation framework.
 
+Instead of relying on basic, unformatted text boxes for defining model behaviors, this plugin injects a fully-featured, context-aware code editor directly into the Eclipse IDE.
+
 ![UML Preview](uml_preview.png)
 
 ![Ecore Preview](ecore_preview.png)
-
-Instead of relying on basic, unformatted text boxes for defining model behaviors, this plugin injects a fully-featured, context-aware code editor directly into the Eclipse IDE.
 
 ## ✨ Key Features
 

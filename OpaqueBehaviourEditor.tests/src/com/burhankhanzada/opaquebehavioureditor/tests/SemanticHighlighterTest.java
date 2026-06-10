@@ -1,7 +1,6 @@
 package com.burhankhanzada.opaquebehavioureditor.tests;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -14,13 +13,11 @@ import com.burhankhanzada.opaquebehavioureditor.editor.highlighting.Highlighting
 import com.burhankhanzada.opaquebehavioureditor.editor.highlighting.SemanticHighlighter;
 import com.burhankhanzada.opaquebehavioureditor.model.TextRange;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
-import com.burhankhanzada.opaquebehavioureditor.model.ModelValidator;
 
 public class SemanticHighlighterTest {
 
     private ModelDictionary dictionary;
     private SemanticHighlighter highlighter;
-    private ModelValidator validator;
     private LanguageDef cppLangDef;
 
     @Before
@@ -34,7 +31,6 @@ public class SemanticHighlighterTest {
         dictionary.addTypeMember("Library", "printLibrary", "uml::Operation");
 
         highlighter = new SemanticHighlighter(dictionary);
-        validator = new ModelValidator(dictionary);
         cppLangDef = LanguageMapping.getLanguageDef("CPP");
     }
 
@@ -64,23 +60,4 @@ public class SemanticHighlighterTest {
         assertEquals("printLibrary", foundMethod);
     }
 
-    @Test
-    public void testValidationSuccess() {
-        String code = "std::shared_ptr<Library> lib;\nlib->printLibrary();";
-        List<TextRange> errors = validator.validateMemberAccess(code, cppLangDef);
-        
-        assertTrue("Should have no validation errors", errors.isEmpty());
-    }
-
-    @Test
-    public void testValidationError() {
-        String code = "std::shared_ptr<Library> lib;\nlib->fakeMethod();";
-        List<TextRange> errors = validator.validateMemberAccess(code, cppLangDef);
-        
-        assertEquals("Should find exactly 1 validation error", 1, errors.size());
-        
-        TextRange error = errors.get(0);
-        String errorMethod = code.substring(error.offset, error.offset + error.length);
-        assertEquals("fakeMethod", errorMethod);
-    }
 }

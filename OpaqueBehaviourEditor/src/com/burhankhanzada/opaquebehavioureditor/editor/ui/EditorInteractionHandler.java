@@ -11,7 +11,7 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Point;
 
-import com.burhankhanzada.opaquebehavioureditor.editor.text.CppExpressionParser;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.ExpressionParser;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageDef;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.TextUtilities;
@@ -122,7 +122,7 @@ public class EditorInteractionHandler {
     }
 
     private EObject resolveHyperlink(String word, String textBeforeCaret) {
-        String contextType = CppExpressionParser.resolveContextTypeFromText(textBeforeCaret, dictionary, styledText.getText());
+        String contextType = ExpressionParser.resolveContextTypeFromText(textBeforeCaret, dictionary, styledText.getText());
         if (contextType != null) {
             if (contextType.startsWith("std::shared_ptr<")) {
                 contextType = contextType.substring(16, contextType.length() - 1);
@@ -137,6 +137,6 @@ public class EditorInteractionHandler {
     }
 
     private String resolveVariableType(String variableName) {
-        return CppExpressionParser.resolveVariableType(variableName, styledText.getText());
+        return ExpressionParser.resolveVariableType(variableName, styledText.getText());
     }
 }

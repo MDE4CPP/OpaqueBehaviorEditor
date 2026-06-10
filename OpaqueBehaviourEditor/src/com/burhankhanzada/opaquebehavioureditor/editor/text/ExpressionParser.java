@@ -5,10 +5,10 @@ import java.util.Map;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
 
 /**
- * Utility class to parse C++ expressions from a text editor and determine the context
+ * Utility class to parse expressions from a text editor and determine the context
  * or return type for auto-completion and syntax highlighting.
  */
-public class CppExpressionParser {
+public class ExpressionParser {
 
     /**
      * Parses the C++ expression preceding the caret to determine its return type.

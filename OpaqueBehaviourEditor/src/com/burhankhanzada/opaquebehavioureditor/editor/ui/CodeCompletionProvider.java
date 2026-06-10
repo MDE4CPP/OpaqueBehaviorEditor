@@ -19,7 +19,7 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
 
-import com.burhankhanzada.opaquebehavioureditor.editor.text.CppExpressionParser;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.ExpressionParser;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.SnippetLibrary;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.TextUtilities;
@@ -142,7 +142,7 @@ public class CodeCompletionProvider {
             if (inserting) return;
             if (e.text.equals(".") && engine.getCurrentLangDef() != null && engine.getCurrentLangDef().name.equals(LanguageMapping.LANG_CPP)) {
                 String textBefore = styledText.getText().substring(0, e.start) + ".";
-                String type = CppExpressionParser.resolveContextTypeFromText(textBefore, dictionary, styledText.getText());
+                String type = ExpressionParser.resolveContextTypeFromText(textBefore, dictionary, styledText.getText());
                 if (type != null) {
                     e.text = "->";
                 }
@@ -163,7 +163,7 @@ public class CodeCompletionProvider {
         if (isMemberAccess) {
             int caretOffset = styledText.getCaretOffset();
             String textBeforeCaret = TextUtilities.getTextBeforeIdentifier(styledText.getText(), caretOffset);
-            contextType = CppExpressionParser.resolveContextTypeFromText(textBeforeCaret, dictionary, styledText.getText());
+            contextType = ExpressionParser.resolveContextTypeFromText(textBeforeCaret, dictionary, styledText.getText());
         }
 
         List<String> matches = engine.findMatches(prefix, isMemberAccess, contextType, styledText.getText());

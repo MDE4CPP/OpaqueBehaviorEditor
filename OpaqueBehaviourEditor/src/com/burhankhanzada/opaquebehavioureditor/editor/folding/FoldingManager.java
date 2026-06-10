@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 
+import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 
 /**
@@ -283,6 +284,18 @@ public class FoldingManager {
 
             styledText.replaceTextRange(foldStart, textToHide.length(), placeholder);
 
+            // Clear any error underline styles on the entire folded line + placeholder
+            clearUnderlinesOnRange(startLineOffset, startLineContent.length() + placeholder.length());
+
+            // Also schedule an async clear to catch deferred style applications
+            final int clearStart = startLineOffset;
+            final int clearLen = startLineContent.length() + placeholder.length();
+            styledText.getDisplay().asyncExec(() -> {
+                if (!styledText.isDisposed()) {
+                    clearUnderlinesOnRange(clearStart, clearLen);
+                }
+            });
+
             // Update all other regions' line numbers
             int linesRemoved = endLine - startLine;
             adjustRegionsAfterFold(region, -linesRemoved);
@@ -413,6 +426,38 @@ public class FoldingManager {
         return false;
     }
 
+    /**
+     * Reconstructs the full unfolded text by reinserting hidden text
+     * from all collapsed regions into the current visible text.
+     * This allows validators to work on the complete document
+     * even when regions are folded.
+     */
+    public String getUnfoldedText() {
+        if (styledText == null || styledText.isDisposed()) return "";
+        String text = styledText.getText();
+        if (!hasCollapsedRegions()) return text;
+
+        // Collect collapsed regions sorted by foldOffset descending
+        // so we can replace from end to start without invalidating offsets
+        List<FoldableRegion> collapsed = new ArrayList<>();
+        for (FoldableRegion r : regions) {
+            if (r.isCollapsed() && r.getFoldOffset() >= 0 && r.getHiddenText() != null) {
+                collapsed.add(r);
+            }
+        }
+        collapsed.sort((a, b) -> Integer.compare(b.getFoldOffset(), a.getFoldOffset()));
+
+        StringBuilder sb = new StringBuilder(text);
+        for (FoldableRegion r : collapsed) {
+            int offset = r.getFoldOffset();
+            int placeholderLen = r.getPlaceholderLength();
+            if (offset >= 0 && offset + placeholderLen <= sb.length()) {
+                sb.replace(offset, offset + placeholderLen, r.getHiddenText());
+            }
+        }
+        return sb.toString();
+    }
+
     private void fireFoldingChanged() {
         for (Runnable listener : foldingListeners) {
             try {
@@ -420,6 +465,29 @@ public class FoldingManager {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    /**
+     * Clears any underline styles on the given text range,
+     * preserving all other style properties (colors, fonts, etc.).
+     */
+    private void clearUnderlinesOnRange(int start, int length) {
+        try {
+            int end = Math.min(start + length, styledText.getCharCount());
+            if (start >= end || start < 0) return;
+
+            StyleRange[] ranges = styledText.getStyleRanges(start, end - start);
+            for (StyleRange sr : ranges) {
+                if (sr.underline) {
+                    sr.underline = false;
+                    sr.underlineStyle = 0;
+                    sr.underlineColor = null;
+                    styledText.setStyleRange(sr);
+                }
+            }
+        } catch (Exception e) {
+            // Ignore — defensive against race conditions during text changes
         }
     }
 }

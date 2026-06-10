@@ -8,6 +8,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 
+import com.burhankhanzada.opaquebehavioureditor.editor.folding.FoldingManager;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageDef;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelValidator;
@@ -19,6 +20,7 @@ public class SemanticPresentationListener implements ITextPresentationListener {
     private final SemanticHighlighter semanticHighlighter;
     private final ModelValidator modelValidator;
     private final EditorThemeManager themeManager;
+    private FoldingManager foldingManager;
 
     public SemanticPresentationListener(StyledText codeText, SemanticHighlighter semanticHighlighter, 
                                         ModelValidator modelValidator, EditorThemeManager themeManager) {
@@ -26,6 +28,14 @@ public class SemanticPresentationListener implements ITextPresentationListener {
         this.semanticHighlighter = semanticHighlighter;
         this.modelValidator = modelValidator;
         this.themeManager = themeManager;
+    }
+
+    /**
+     * Sets the FoldingManager so that error validation can be skipped
+     * when regions are collapsed (to avoid false positives from placeholder text).
+     */
+    public void setFoldingManager(FoldingManager foldingManager) {
+        this.foldingManager = foldingManager;
     }
 
     @Override
@@ -92,16 +102,19 @@ public class SemanticPresentationListener implements ITextPresentationListener {
             }
         }
         
-        // Errors
-        List<TextRange> errors = modelValidator.validateMemberAccess(codeText.getText(), langDef);
-        errors.addAll(modelValidator.validateSyntax(codeText.getText(), langDef));
-        
-        for (TextRange err : errors) {
-            StyleRange style = new StyleRange(err.offset, err.length, null, null);
-            style.underline = true;
-            style.underlineStyle = SWT.UNDERLINE_ERROR;
-            style.underlineColor = codeText.getDisplay().getSystemColor(SWT.COLOR_RED);
-            textPresentation.mergeStyleRange(style);
+        // Errors — skip when regions are collapsed to avoid false positives
+        // from placeholder text corrupting bracket matching
+        if (foldingManager == null || !foldingManager.hasCollapsedRegions()) {
+            List<TextRange> errors = modelValidator.validateMemberAccess(codeText.getText(), langDef);
+            errors.addAll(modelValidator.validateSyntax(codeText.getText(), langDef));
+            
+            for (TextRange err : errors) {
+                StyleRange style = new StyleRange(err.offset, err.length, null, null);
+                style.underline = true;
+                style.underlineStyle = SWT.UNDERLINE_ERROR;
+                style.underlineColor = codeText.getDisplay().getSystemColor(SWT.COLOR_RED);
+                textPresentation.mergeStyleRange(style);
+            }
         }
     }
 }

@@ -137,6 +137,7 @@ public class CodeEditorConfigurator {
             SemanticPresentationListener listener = new SemanticPresentationListener(
                 codeText, semanticHighlighter, modelValidator, themeManager
             );
+            listener.setFoldingManager(foldingManager);
             ext4.addTextPresentationListener(listener);
         }
     }

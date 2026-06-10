@@ -34,7 +34,7 @@ public class SemanticPresentationListener implements ITextPresentationListener {
         if (language == null) language = "";
         LanguageDef langDef = LanguageMapping.getLanguageDef(language);
         
-        SemanticHighlighter.HighlightingContext ctx = semanticHighlighter.createContext(codeText.getText(), langDef);
+        HighlightingContext ctx = HighlightingContext.create(codeText.getText(), langDef);
         
         // Type Highlighting
         List<TextRange> typeRanges = semanticHighlighter.getUMLTypeRanges(ctx);

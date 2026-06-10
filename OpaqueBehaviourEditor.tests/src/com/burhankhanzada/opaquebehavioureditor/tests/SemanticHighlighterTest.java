@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageDef;
+import com.burhankhanzada.opaquebehavioureditor.editor.highlighting.HighlightingContext;
 import com.burhankhanzada.opaquebehavioureditor.editor.highlighting.SemanticHighlighter;
 import com.burhankhanzada.opaquebehavioureditor.model.TextRange;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
@@ -40,7 +41,7 @@ public class SemanticHighlighterTest {
     @Test
     public void testUMLTypeHighlighting() {
         String code = "std::shared_ptr<Library> lib = factory->createLibrary();";
-        SemanticHighlighter.HighlightingContext ctx = highlighter.createContext(code, cppLangDef);
+        HighlightingContext ctx = HighlightingContext.create(code, cppLangDef);
         List<TextRange> typeRanges = highlighter.getUMLTypeRanges(ctx);
         
         assertEquals("Should find exactly 3 UML types (std, shared_ptr, Library)", 3, typeRanges.size());
@@ -53,7 +54,7 @@ public class SemanticHighlighterTest {
     @Test
     public void testMethodHighlighting() {
         String code = "lib->printLibrary();";
-        SemanticHighlighter.HighlightingContext ctx = highlighter.createContext(code, cppLangDef);
+        HighlightingContext ctx = HighlightingContext.create(code, cppLangDef);
         List<TextRange> methodRanges = highlighter.getMethodRanges(ctx);
         
         assertEquals("Should find exactly 1 method", 1, methodRanges.size());

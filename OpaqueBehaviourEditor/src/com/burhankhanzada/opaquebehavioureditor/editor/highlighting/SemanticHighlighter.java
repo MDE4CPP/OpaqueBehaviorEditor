@@ -11,11 +11,7 @@ import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageDef;
 
 public class SemanticHighlighter {
 
-    public record HighlightingContext(String text, LanguageDef lang, List<TextRange> ignored) {}
 
-    public HighlightingContext createContext(String text, LanguageDef lang) {
-        return new HighlightingContext(text, lang, getIgnoredRanges(text));
-    }
 
     public static final Set<String> STD_TYPES = Set.of(
         "std", "shared_ptr", "weak_ptr", "unique_ptr", "dynamic_pointer_cast",
@@ -127,7 +123,7 @@ public class SemanticHighlighter {
         return ranges;
     }
 
-    public List<TextRange> getCommentRanges(String text) {
+    public static List<TextRange> getCommentRanges(String text) {
         List<TextRange> comments = new ArrayList<>();
         int i = 0;
         int len = text.length();
@@ -163,7 +159,7 @@ public class SemanticHighlighter {
         return comments;
     }
 
-    public List<TextRange> getStringRanges(String text) {
+    public static List<TextRange> getStringRanges(String text) {
         List<TextRange> strings = new ArrayList<>();
         int i = 0;
         int len = text.length();
@@ -196,7 +192,7 @@ public class SemanticHighlighter {
         return strings;
     }
 
-    private List<TextRange> getIgnoredRanges(String text) {
+    public static List<TextRange> getIgnoredRanges(String text) {
         List<TextRange> ignored = new ArrayList<>();
         ignored.addAll(getCommentRanges(text));
         ignored.addAll(getStringRanges(text));

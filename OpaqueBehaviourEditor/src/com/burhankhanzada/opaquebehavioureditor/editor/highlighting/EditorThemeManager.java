@@ -28,6 +28,9 @@ public class EditorThemeManager {
     private Color commentColor;
     private Color stringColor;
     
+    private Color foldIconColor;
+    private Color foldIconHoverColor;
+    
     private Color searchHighlightColor;
     private String currentSearchText;
     
@@ -49,7 +52,7 @@ public class EditorThemeManager {
         codeText.setFont(monoFont);
         codeText.setTabs(4);
         
-        codeText.setMargins(45, 5, 5, 5);
+        codeText.setMargins(60, 5, 5, 5);
 
         boolean dark = ThemeUtils.isDarkTheme(parent);
         final Color lineNumColor;
@@ -79,7 +82,9 @@ public class EditorThemeManager {
             
             lineNumColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(133, 133, 133)));
             separatorColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(80, 80, 80)));
-            searchHighlightColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(100, 100, 0))); 
+            searchHighlightColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(100, 100, 0)));
+            foldIconColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(140, 140, 140)));
+            foldIconHoverColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(200, 200, 200)));
             
             umlTypeColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(78, 201, 176)));
             methodColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(220, 220, 170)));
@@ -90,7 +95,9 @@ public class EditorThemeManager {
         } else {
             lineNumColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(43, 145, 175)));
             separatorColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(200, 200, 200)));
-            searchHighlightColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(255, 255, 0))); 
+            searchHighlightColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(255, 255, 0)));
+            foldIconColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(120, 120, 120)));
+            foldIconHoverColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(60, 60, 60)));
             
             umlTypeColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(38, 127, 153))); 
             methodColor = (Color) resourceManager.create(ColorDescriptor.createFrom(new RGB(121, 94, 38)));   
@@ -185,4 +192,6 @@ public class EditorThemeManager {
     public Color getStringColor() { return stringColor; }
     public Color getSearchHighlightColor() { return searchHighlightColor; }
     public String getCurrentSearchText() { return currentSearchText; }
+    public Color getFoldIconColor() { return foldIconColor; }
+    public Color getFoldIconHoverColor() { return foldIconHoverColor; }
 }

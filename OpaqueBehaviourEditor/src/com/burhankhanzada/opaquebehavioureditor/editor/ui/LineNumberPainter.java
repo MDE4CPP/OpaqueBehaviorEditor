@@ -34,11 +34,11 @@ public class LineNumberPainter implements PaintListener {
             int linePixel = codeText.getLinePixel(i);
             String num = String.valueOf(i + 1);
             Point extent = e.gc.stringExtent(num);
-            // Right align within the left 45px margin area
+            // Right align within the left margin area (before the separator)
             e.gc.drawString(num, 38 - extent.x, linePixel, true);
         }
         
-        // Draw a separator line between numbers and text
+        // Draw a separator line between line numbers and the fold icon area
         e.gc.setForeground(separatorColor);
         e.gc.drawLine(42, 0, 42, codeText.getClientArea().height);
     }

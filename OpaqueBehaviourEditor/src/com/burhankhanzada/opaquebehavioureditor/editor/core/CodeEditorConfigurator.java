@@ -14,6 +14,9 @@ import org.eclipse.tm4e.ui.text.TMPresentationReconciler;
 
 import com.burhankhanzada.opaquebehavioureditor.model.ModelValidator;
 import com.burhankhanzada.opaquebehavioureditor.editor.actions.EditorActionManager;
+import com.burhankhanzada.opaquebehavioureditor.editor.actions.FoldingAction;
+import com.burhankhanzada.opaquebehavioureditor.editor.folding.FoldingManager;
+import com.burhankhanzada.opaquebehavioureditor.editor.folding.FoldingRulerColumn;
 import com.burhankhanzada.opaquebehavioureditor.editor.highlighting.EditorThemeManager;
 import com.burhankhanzada.opaquebehavioureditor.editor.highlighting.SemanticHighlighter;
 import com.burhankhanzada.opaquebehavioureditor.editor.highlighting.SemanticPresentationListener;
@@ -30,6 +33,8 @@ public class CodeEditorConfigurator {
     private TMPresentationReconciler tmReconciler;
     private EditorThemeManager themeManager;
     private EditorActionManager actionManager;
+    private FoldingManager foldingManager;
+    private FoldingAction foldingAction;
 
     public CodeEditorConfigurator(SemanticHighlighter semanticHighlighter, ModelValidator modelValidator) {
         this.semanticHighlighter = semanticHighlighter;
@@ -53,6 +58,7 @@ public class CodeEditorConfigurator {
         themeManager.setupCurrentLineHighlighting();
 
         setupLineNumbers(codeText);
+        setupFolding(sourceViewer, codeText);
         setupSyntaxHighlighting(sourceViewer, codeText);
 
         // ---- Attach Undo/Redo Manager ----
@@ -62,7 +68,7 @@ public class CodeEditorConfigurator {
         SimpleFindReplaceDialog findDialog = new SimpleFindReplaceDialog(parent.getShell(), sourceViewer.getFindReplaceTarget(), this);
         
         // Delegate keyboard shortcuts and actions
-        this.actionManager = new EditorActionManager(sourceViewer, undoManager, findDialog, themeManager);
+        this.actionManager = new EditorActionManager(sourceViewer, undoManager, findDialog, themeManager, foldingAction);
         codeText.addVerifyKeyListener(actionManager.createVerifyKeyListener());
     }
 
@@ -71,6 +77,37 @@ public class CodeEditorConfigurator {
         org.eclipse.swt.graphics.Color separatorColor = (org.eclipse.swt.graphics.Color) codeText.getData("separatorColor");
         
         codeText.addPaintListener(new LineNumberPainter(codeText, lineNumColor, separatorColor));
+    }
+
+    private void setupFolding(SourceViewer sourceViewer, StyledText codeText) {
+        this.foldingManager = new FoldingManager(codeText);
+        
+        // Create the fold icon ruler column
+        org.eclipse.swt.graphics.Color foldColor = themeManager.getFoldIconColor();
+        org.eclipse.swt.graphics.Color foldHoverColor = themeManager.getFoldIconHoverColor();
+        FoldingRulerColumn foldingRuler = new FoldingRulerColumn(codeText, foldingManager, foldColor, foldHoverColor);
+        codeText.addPaintListener(foldingRuler);
+        
+        // Create keyboard action handler
+        this.foldingAction = new FoldingAction(sourceViewer, foldingManager);
+        
+        // Recompute regions after text modifications (with a small delay to batch changes)
+        codeText.addModifyListener(e -> {
+            codeText.getDisplay().timerExec(100, () -> {
+                if (!codeText.isDisposed() && !foldingManager.hasCollapsedRegions()) {
+                    foldingManager.recomputeRegions();
+                    codeText.redraw();
+                }
+            });
+        });
+        
+        // Initial region computation
+        codeText.getDisplay().asyncExec(() -> {
+            if (!codeText.isDisposed()) {
+                foldingManager.recomputeRegions();
+                codeText.redraw();
+            }
+        });
     }
 
     private void setupSyntaxHighlighting(SourceViewer sourceViewer, StyledText codeText) {
@@ -138,5 +175,12 @@ public class CodeEditorConfigurator {
         if (themeManager != null) {
             themeManager.highlightSearch(text);
         }
+    }
+
+    /**
+     * Returns the FoldingManager for this editor, or null if not yet initialized.
+     */
+    public FoldingManager getFoldingManager() {
+        return foldingManager;
     }
 }

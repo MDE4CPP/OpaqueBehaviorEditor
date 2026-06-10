@@ -29,19 +29,24 @@ public class EditorActionManager {
         public static int DUPLICATE_LINE = SWT.ARROW_DOWN;
         public static int RENAME = SWT.F2;
         public static int RENAME_CTRL = 'r';
+        public static int FOLD_COLLAPSE = '[';
+        public static int FOLD_EXPAND = ']';
     }
 
     private final SourceViewer sourceViewer;
     private final IUndoManager undoManager;
     private final SimpleFindReplaceDialog findDialog;
     private final EditorThemeManager themeManager;
+    private final FoldingAction foldingAction;
 
     public EditorActionManager(SourceViewer sourceViewer, IUndoManager undoManager, 
-                               SimpleFindReplaceDialog findDialog, EditorThemeManager themeManager) {
+                               SimpleFindReplaceDialog findDialog, EditorThemeManager themeManager,
+                               FoldingAction foldingAction) {
         this.sourceViewer = sourceViewer;
         this.undoManager = undoManager;
         this.findDialog = findDialog;
         this.themeManager = themeManager;
+        this.foldingAction = foldingAction;
     }
 
     public VerifyKeyListener createVerifyKeyListener() {
@@ -101,6 +106,16 @@ public class EditorActionManager {
                         sourceViewer.doOperation(ITextOperationTarget.SHIFT_RIGHT);
                         e.doit = false;
                     }
+                } else if (isCtrl && isShift && e.keyCode == KeyBindings.FOLD_COLLAPSE) {
+                    if (foldingAction != null) {
+                        foldingAction.collapseCurrentRegion();
+                    }
+                    e.doit = false;
+                } else if (isCtrl && isShift && e.keyCode == KeyBindings.FOLD_EXPAND) {
+                    if (foldingAction != null) {
+                        foldingAction.expandCurrentRegion();
+                    }
+                    e.doit = false;
                 }
             }
         };

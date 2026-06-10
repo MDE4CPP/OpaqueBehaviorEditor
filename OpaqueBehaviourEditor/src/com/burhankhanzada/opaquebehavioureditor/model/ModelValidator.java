@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageDef;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.ExpressionParser;
+import com.burhankhanzada.opaquebehavioureditor.editor.text.TextScanState;
 
 public class ModelValidator {
 
@@ -97,54 +98,18 @@ public class ModelValidator {
         java.util.Stack<Integer> openBrace = new java.util.Stack<>();
         java.util.Stack<Integer> openBracket = new java.util.Stack<>();
 
-        boolean inString = false;
-        boolean inChar = false;
-        boolean inSingleComment = false;
-        boolean inMultiComment = false;
+        TextScanState state = new TextScanState();
 
         for (int i = 0; i < text.length(); i++) {
+            boolean wasIgnored = state.isIgnored();
+            int skip = state.process(text, i);
+            
+            if (wasIgnored || state.isIgnored()) {
+                i += skip;
+                continue;
+            }
+            
             char c = text.charAt(i);
-            char next = (i + 1 < text.length()) ? text.charAt(i + 1) : '\0';
-            char prev = (i > 0) ? text.charAt(i - 1) : '\0';
-
-            if (inSingleComment) {
-                if (c == '\n') inSingleComment = false;
-                continue;
-            }
-            if (inMultiComment) {
-                if (c == '*' && next == '/') {
-                    inMultiComment = false;
-                    i++;
-                }
-                continue;
-            }
-            if (inString) {
-                if (c == '"' && prev != '\\') inString = false;
-                continue;
-            }
-            if (inChar) {
-                if (c == '\'' && prev != '\\') inChar = false;
-                continue;
-            }
-
-            if (c == '/' && next == '/') {
-                inSingleComment = true;
-                i++;
-                continue;
-            }
-            if (c == '/' && next == '*') {
-                inMultiComment = true;
-                i++;
-                continue;
-            }
-            if (c == '"') {
-                inString = true;
-                continue;
-            }
-            if (c == '\'') {
-                inChar = true;
-                continue;
-            }
 
             if (c == '(') openParen.push(i);
             else if (c == '{') openBrace.push(i);
@@ -161,6 +126,7 @@ public class ModelValidator {
                 if (openBracket.isEmpty()) errors.add(new TextRange(i, 1, "Unmatched closing ']'"));
                 else openBracket.pop();
             }
+            i += skip;
         }
 
         while (!openParen.isEmpty()) errors.add(new TextRange(openParen.pop(), 1, "Unclosed opening '('"));

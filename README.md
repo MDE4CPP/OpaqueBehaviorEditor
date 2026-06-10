@@ -2,6 +2,10 @@
 
 A specialized Eclipse Plugin designed to provide a rich, intelligent editing experience for UML `OpaqueBehavior` bodies and Ecore model annotations. 
 
+![UML Preview](uml_preview.png)
+
+![Ecore Preview](ecore_preview.png)
+
 Instead of relying on basic, unformatted text boxes for defining model behaviors, this plugin injects a fully-featured, context-aware code editor directly into the Eclipse IDE.
 
 ## ✨ Key Features

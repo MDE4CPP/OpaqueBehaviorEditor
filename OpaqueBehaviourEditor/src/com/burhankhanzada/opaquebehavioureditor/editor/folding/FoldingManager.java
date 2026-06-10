@@ -72,7 +72,6 @@ public class FoldingManager {
      * Ignores braces inside string literals and line/block comments.
      */
     private void detectBraceRegions(String text) {
-        int lineCount = styledText.getLineCount();
         Stack<Integer> braceStack = new Stack<>();
 
         boolean inString = false;
@@ -348,17 +347,6 @@ public class FoldingManager {
             if (r.getStartLine() > thresholdLine) {
                 r.setStartLine(r.getStartLine() + lineDelta);
                 r.setEndLine(r.getEndLine() + lineDelta);
-                // Adjust fold offsets for collapsed regions downstream
-                if (r.isCollapsed() && r.getFoldOffset() >= 0) {
-                    int charDelta = (changedRegion.getHiddenText() != null)
-                        ? changedRegion.getPlaceholderLength() - changedRegion.getHiddenText().length()
-                        : 0;
-                    if (lineDelta < 0) {
-                        // Collapsing: placeholder is shorter than hidden text
-                        charDelta = changedRegion.getPlaceholderLength() - changedRegion.getHiddenText().length();
-                    }
-                    // Let recompute handle offset adjustments to avoid compounding errors
-                }
             }
         }
     }

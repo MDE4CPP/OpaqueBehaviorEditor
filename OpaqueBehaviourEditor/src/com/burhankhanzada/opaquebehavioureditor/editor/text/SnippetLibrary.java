@@ -32,7 +32,7 @@ public class SnippetLibrary {
         return new File(homeDir, ".opaque_snippets.properties");
     }
 
-    public static List<Snippet> getSnippets() {
+    public static synchronized List<Snippet> getSnippets() {
         File file = getSnippetsFile();
         
         if (!file.exists()) {

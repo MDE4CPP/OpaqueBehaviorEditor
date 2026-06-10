@@ -65,14 +65,14 @@ public class SemanticPresentationListener implements ITextPresentationListener {
         }
         
         // String Highlighting
-        List<TextRange> strRanges = semanticHighlighter.getStringRanges(codeText.getText());
+        List<TextRange> strRanges = SemanticHighlighter.getStringRanges(codeText.getText());
         for (TextRange sr : strRanges) {
             StyleRange style = new StyleRange(sr.offset, sr.length, themeManager.getStringColor(), null);
             textPresentation.mergeStyleRange(style);
         }
         
         // Comment Highlighting (Overrides everything else inside the comment)
-        List<TextRange> commentRanges = semanticHighlighter.getCommentRanges(codeText.getText());
+        List<TextRange> commentRanges = SemanticHighlighter.getCommentRanges(codeText.getText());
         for (TextRange cr : commentRanges) {
             StyleRange style = new StyleRange(cr.offset, cr.length, themeManager.getCommentColor(), null);
             textPresentation.mergeStyleRange(style);

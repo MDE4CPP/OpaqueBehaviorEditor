@@ -3,6 +3,7 @@ package com.burhankhanzada.opaquebehavioureditor.model;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageDef;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.ExpressionParser;
@@ -23,6 +24,8 @@ public class ModelValidator {
         "front", "back", "begin", "end", "at"
     };
 
+    private static final Pattern MEMBER_ACCESS_PATTERN = Pattern.compile("->[ \\t]*([A-Za-z0-9_]+)");
+
     private final ModelDictionary dictionary;
 
     public ModelValidator(ModelDictionary dictionary) {
@@ -39,8 +42,7 @@ public class ModelValidator {
             return errors;
         }
         
-        java.util.regex.Pattern p = java.util.regex.Pattern.compile("->[ \\t]*([A-Za-z0-9_]+)");
-        java.util.regex.Matcher m = p.matcher(text);
+        java.util.regex.Matcher m = MEMBER_ACCESS_PATTERN.matcher(text);
         
         while (m.find()) {
             String methodName = m.group(1);

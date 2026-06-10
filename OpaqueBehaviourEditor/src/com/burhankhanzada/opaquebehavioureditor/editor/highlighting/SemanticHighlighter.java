@@ -3,11 +3,12 @@ package com.burhankhanzada.opaquebehavioureditor.editor.highlighting;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import com.burhankhanzada.opaquebehavioureditor.model.TextRange;
 import com.burhankhanzada.opaquebehavioureditor.model.ModelDictionary;
 import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageMapping;
-import com.burhankhanzada.opaquebehavioureditor.editor.text.LanguageDef;
 
 public class SemanticHighlighter {
 
@@ -25,6 +26,9 @@ public class SemanticHighlighter {
         "break", "continue", "true", "false", "nullptr"
     );
 
+    private static final Pattern WORD_PATTERN = Pattern.compile("\\b([A-Za-z0-9_]+)\\b");
+    private static final Pattern METHOD_CALL_PATTERN = Pattern.compile("\\b([A-Za-z0-9_]+)\\s*\\(");
+
     private final ModelDictionary dictionary;
 
     public SemanticHighlighter(ModelDictionary dictionary) {
@@ -39,8 +43,7 @@ public class SemanticHighlighter {
         
         List<TextRange> ignored = ctx.ignored();
         String text = ctx.text();
-        java.util.regex.Pattern p = java.util.regex.Pattern.compile("\\b([A-Za-z0-9_]+)\\b");
-        java.util.regex.Matcher m = p.matcher(text);
+        Matcher m = WORD_PATTERN.matcher(text);
         
         while (m.find()) {
             if (isIgnored(m.start(1), ignored)) continue;
@@ -58,8 +61,7 @@ public class SemanticHighlighter {
         
         List<TextRange> ignored = ctx.ignored();
         String text = ctx.text();
-        java.util.regex.Pattern p = java.util.regex.Pattern.compile("\\b([A-Za-z0-9_]+)\\b");
-        java.util.regex.Matcher m = p.matcher(text);
+        Matcher m = WORD_PATTERN.matcher(text);
         
         while (m.find()) {
             if (isIgnored(m.start(1), ignored)) continue;
@@ -77,8 +79,7 @@ public class SemanticHighlighter {
         
         List<TextRange> ignored = ctx.ignored();
         String text = ctx.text();
-        java.util.regex.Pattern p = java.util.regex.Pattern.compile("\\b([A-Za-z0-9_]+)\\b");
-        java.util.regex.Matcher m = p.matcher(text);
+        Matcher m = WORD_PATTERN.matcher(text);
         while (m.find()) {
             if (isIgnored(m.start(1), ignored)) continue;
             String word = m.group(1);
@@ -109,8 +110,7 @@ public class SemanticHighlighter {
         
         List<TextRange> ignored = ctx.ignored();
         String text = ctx.text();
-        java.util.regex.Pattern p = java.util.regex.Pattern.compile("\\b([A-Za-z0-9_]+)\\s*\\(");
-        java.util.regex.Matcher m = p.matcher(text);
+        Matcher m = METHOD_CALL_PATTERN.matcher(text);
         
         while (m.find()) {
             if (isIgnored(m.start(1), ignored)) continue;

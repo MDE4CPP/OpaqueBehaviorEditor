@@ -123,7 +123,7 @@ public class OpaqueBehaviorBodyDialog extends TitleAreaDialog {
         }
         bodyList.setLayoutData(topGD);
 
-        codeEditor = new CodeEditorComposite(main, SWT.NONE, dictionary, selectionProvider);
+        codeEditor = new CodeEditorComposite(main, SWT.NONE, dictionary, selectionProvider, isUml);
         codeEditor.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         codeEditor.setSaveAction(saveAction);
 

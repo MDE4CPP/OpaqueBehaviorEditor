@@ -40,13 +40,18 @@ public class CodeEditorComposite extends Composite {
     private BiConsumer<String, String> changeListener;
     private Runnable saveAction;
 
-    public CodeEditorComposite(Composite parent, int style, ModelDictionary dictionary, ISelectionProvider selectionProvider) {
+    public CodeEditorComposite(Composite parent, int style, ModelDictionary dictionary, ISelectionProvider selectionProvider, boolean isUml) {
         super(parent, style);
         
         setLayout(new GridLayout(1, false));
         
         Composite row = new Composite(this, SWT.NONE);
-        row.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        GridData rowData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        if (!isUml) {
+            rowData.exclude = true;
+            row.setVisible(false);
+        }
+        row.setLayoutData(rowData);
         row.setLayout(new GridLayout(6, false));
 
         Label lbl = new Label(row, SWT.NONE);

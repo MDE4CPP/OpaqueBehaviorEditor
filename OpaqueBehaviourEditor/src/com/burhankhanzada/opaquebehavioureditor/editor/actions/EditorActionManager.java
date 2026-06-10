@@ -12,6 +12,21 @@ import com.burhankhanzada.opaquebehavioureditor.editor.highlighting.EditorThemeM
 
 public class EditorActionManager {
 
+    public static class KeyBindings {
+        public static int UNDO = 'z';
+        public static int REDO = 'y';
+        public static int FORMAT = 'f';
+        public static int FIND = 'f';
+        public static int TOGGLE_COMMENT = '/';
+        public static int ZOOM_IN_1 = '=';
+        public static int ZOOM_IN_2 = '+';
+        public static int ZOOM_OUT = '-';
+        public static int WORD_WRAP = 'z';
+        public static int DELETE_LINE = 'd';
+        public static int GO_TO_LINE = 'l';
+        public static int DUPLICATE_LINE = SWT.ARROW_DOWN;
+    }
+
     private final SourceViewer sourceViewer;
     private final org.eclipse.jface.text.IUndoManager undoManager;
     private final SimpleFindReplaceDialog findDialog;
@@ -34,41 +49,41 @@ public class EditorActionManager {
                 boolean isShift = (e.stateMask & SWT.SHIFT) != 0;
                 boolean isAlt = (e.stateMask & SWT.ALT) != 0;
                 
-                if (isCtrl && e.keyCode == 'z') {
+                if (isCtrl && e.keyCode == KeyBindings.UNDO) {
                     if (isShift) {
                         if (undoManager.redoable()) undoManager.redo();
                     } else {
                         if (undoManager.undoable()) undoManager.undo();
                     }
                     e.doit = false;
-                } else if (isCtrl && e.keyCode == 'y') {
+                } else if (isCtrl && e.keyCode == KeyBindings.REDO) {
                     if (undoManager.redoable()) undoManager.redo();
                     e.doit = false;
-                } else if (isCtrl && isShift && e.keyCode == 'f') {
+                } else if (isCtrl && isShift && e.keyCode == KeyBindings.FORMAT) {
                     formatDocument();
                     e.doit = false;
-                } else if (isCtrl && !isShift && e.keyCode == 'f') {
+                } else if (isCtrl && !isShift && e.keyCode == KeyBindings.FIND) {
                     findDialog.open();
                     e.doit = false;
-                } else if (isCtrl && e.keyCode == '/') {
+                } else if (isCtrl && e.keyCode == KeyBindings.TOGGLE_COMMENT) {
                     toggleComments();
                     e.doit = false;
-                } else if (isCtrl && (e.keyCode == '=' || e.keyCode == '+')) {
+                } else if (isCtrl && (e.keyCode == KeyBindings.ZOOM_IN_1 || e.keyCode == KeyBindings.ZOOM_IN_2)) {
                     themeManager.zoomIn();
                     e.doit = false;
-                } else if (isCtrl && e.keyCode == '-') {
+                } else if (isCtrl && e.keyCode == KeyBindings.ZOOM_OUT) {
                     themeManager.zoomOut();
                     e.doit = false;
-                } else if (isAlt && e.keyCode == 'z') {
+                } else if (isAlt && e.keyCode == KeyBindings.WORD_WRAP) {
                     codeText.setWordWrap(!codeText.getWordWrap());
                     e.doit = false;
-                } else if (isCtrl && e.keyCode == 'd') {
+                } else if (isCtrl && e.keyCode == KeyBindings.DELETE_LINE) {
                     deleteLine();
                     e.doit = false;
-                } else if (isCtrl && e.keyCode == 'l') {
+                } else if (isCtrl && e.keyCode == KeyBindings.GO_TO_LINE) {
                     goToLine();
                     e.doit = false;
-                } else if (isCtrl && isAlt && e.keyCode == SWT.ARROW_DOWN) {
+                } else if (isCtrl && isAlt && e.keyCode == KeyBindings.DUPLICATE_LINE) {
                     duplicateLine();
                     e.doit = false;
                 } else if (e.keyCode == SWT.TAB) {

@@ -20,9 +20,48 @@ public class FoldingManager {
     
     /** Listeners notified when folding state changes */
     private final List<Runnable> foldingListeners = new ArrayList<>();
+    
+    /** Flag to prevent ExtendedModifyListener from reacting to programmatic fold/unfold */
+    private boolean isProgrammaticChange = false;
 
     public FoldingManager(StyledText styledText) {
         this.styledText = styledText;
+        
+        // Listen to user text changes to adjust fold offsets and line numbers for collapsed regions
+        this.styledText.addExtendedModifyListener(e -> {
+            if (isProgrammaticChange || !hasCollapsedRegions()) return;
+            
+            int charDelta = e.length - e.replacedText.length();
+            
+            int newLines = countLines(this.styledText.getTextRange(e.start, e.length));
+            int oldLines = countLines(e.replacedText);
+            int lineDelta = newLines - oldLines;
+            
+            if (charDelta == 0 && lineDelta == 0) return;
+            
+            int changedLine = this.styledText.getLineAtOffset(e.start);
+            
+            for (FoldableRegion r : regions) {
+                if (r.isCollapsed() && r.getFoldOffset() >= e.start) {
+                    r.setFoldOffset(r.getFoldOffset() + charDelta);
+                }
+                if (r.getStartLine() > changedLine) {
+                    r.setStartLine(r.getStartLine() + lineDelta);
+                }
+                if (r.getEndLine() > changedLine) {
+                    r.setEndLine(r.getEndLine() + lineDelta);
+                }
+            }
+        });
+    }
+
+    private int countLines(String text) {
+        if (text == null || text.isEmpty()) return 0;
+        int count = 0;
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '\n') count++;
+        }
+        return count;
     }
 
     /**
@@ -281,7 +320,9 @@ public class FoldingManager {
             region.setPlaceholderLength(placeholder.length());
             region.setCollapsed(true);
 
+            isProgrammaticChange = true;
             styledText.replaceTextRange(foldStart, textToHide.length(), placeholder);
+            isProgrammaticChange = false;
 
             // Clear any error underline styles on the entire folded line + placeholder
             clearUnderlinesOnRange(startLineOffset, startLineContent.length() + placeholder.length());
@@ -295,9 +336,10 @@ public class FoldingManager {
                 }
             });
 
-            // Update all other regions' line numbers
+            // Update all other regions' line numbers and fold offsets
             int linesRemoved = endLine - startLine;
-            adjustRegionsAfterFold(region, -linesRemoved);
+            int charDelta = placeholder.length() - textToHide.length();
+            adjustRegionsAfterFold(region, -linesRemoved, charDelta);
 
         } catch (Exception e) {
             // Safety: if anything goes wrong, don't corrupt state
@@ -318,7 +360,9 @@ public class FoldingManager {
             int placeholderLen = region.getPlaceholderLength();
             String hiddenText = region.getHiddenText();
 
+            isProgrammaticChange = true;
             styledText.replaceTextRange(foldOffset, placeholderLen, hiddenText);
+            isProgrammaticChange = false;
 
             int linesRestored = region.getEndLine() - region.getStartLine();
             region.setCollapsed(false);
@@ -327,7 +371,8 @@ public class FoldingManager {
             region.setPlaceholderLength(0);
 
             // Restore line numbers for downstream regions
-            adjustRegionsAfterFold(region, linesRestored);
+            int charDelta = hiddenText.length() - placeholderLen;
+            adjustRegionsAfterFold(region, linesRestored, charDelta);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -340,13 +385,19 @@ public class FoldingManager {
      * @param changedRegion the region that was just folded/unfolded
      * @param lineDelta negative for collapse, positive for expand
      */
-    private void adjustRegionsAfterFold(FoldableRegion changedRegion, int lineDelta) {
+    private void adjustRegionsAfterFold(FoldableRegion changedRegion, int lineDelta, int charDelta) {
         int thresholdLine = changedRegion.getStartLine();
+        int thresholdOffset = changedRegion.getFoldOffset();
         for (FoldableRegion r : regions) {
             if (r == changedRegion) continue;
             if (r.getStartLine() > thresholdLine) {
                 r.setStartLine(r.getStartLine() + lineDelta);
+            }
+            if (r.getEndLine() > thresholdLine) {
                 r.setEndLine(r.getEndLine() + lineDelta);
+            }
+            if (r.isCollapsed() && r.getFoldOffset() > thresholdOffset) {
+                r.setFoldOffset(r.getFoldOffset() + charDelta);
             }
         }
     }

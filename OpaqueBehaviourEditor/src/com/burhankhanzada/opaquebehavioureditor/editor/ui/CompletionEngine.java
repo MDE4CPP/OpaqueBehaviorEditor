@@ -18,7 +18,8 @@ public class CompletionEngine {
     private LanguageDef currentLangDef;
     private final TreeSet<String> completionWords = new TreeSet<>();
     private static final int AUTO_TRIGGER_LENGTH = 2;
-    public static final int MAX_PROPOSALS = 15;
+    public static final int MAX_PROPOSALS = 50;
+    public static final int MAX_VISIBLE_ROWS = 15;
 
     public CompletionEngine(ModelDictionary dictionary) {
         this.dictionary = dictionary;

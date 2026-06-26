@@ -17,6 +17,33 @@ import org.eclipse.emf.ecore.EOperation;
  */
 public class EcoreModelHarvester extends AbstractModelHarvester {
 
+    /** AQL/OCL built-in service methods available on all EObjects. */
+    private static final String AQL_SERVICES_TYPE = "aql::Services";
+    private static final String[][] AQL_SERVICES = {
+        // AQL navigation services
+        {"ancestors", "Sequence(OclAny)"},
+        {"current", "OclAny"},
+        {"eAllContents", "Sequence(OclAny)"},
+        {"followingSiblings", "Sequence(OclAny)"},
+        {"precedingSiblings", "Sequence(OclAny)"},
+        {"siblings", "Sequence(OclAny)"},
+        // OCL standard library
+        {"oclAsSet", "Set(EObject)"},
+        {"oclAsType", "T"},
+        {"oclIsInState", "Boolean"},
+        {"oclIsInvalid", "Boolean"},
+        {"oclIsKindOf", "Boolean"},
+        {"oclIsTypeOf", "Boolean"},
+        {"oclIsUndefined", "Boolean"},
+        // AQL/Java utility services
+        {"invoke", "Sequence(OclAny)"},
+        {"isInstance", "Boolean"},
+        {"isSuperTypeOf", "Boolean"},
+        {"lineSeparator", "String"},
+        {"toString", "String"},
+        {"getProperty", "String"},
+    };
+
     public static void harvest(EPackage ePackage, Set<String> contextTypes, ModelDictionary dictionary) {
         if (ePackage == null) {
             return;
@@ -78,6 +105,27 @@ public class EcoreModelHarvester extends AbstractModelHarvester {
                 registerGlobalFeature(p.getName(), typeName, ownerName, p, dictionary);
             }
         }
+
+        // Register AQL/OCL built-in services on a synthetic type
+        registerAqlServices(dictionary);
+
+        // Register context variables (self, thisEObject, currentModel)
+        dictionary.addAutocompleteWord("self");
+        dictionary.addAutocompleteWord("thisEObject");
+        dictionary.addAutocompleteWord("currentModel");
+    }
+
+    /**
+     * Registers AQL/OCL built-in services on a synthetic type and links it
+     * to ecore::EObject so all model types inherit these services.
+     */
+    private static void registerAqlServices(ModelDictionary dictionary) {
+        for (String[] service : AQL_SERVICES) {
+            dictionary.addTypeMember(AQL_SERVICES_TYPE, service[0], service[1]);
+            dictionary.addAutocompleteWord(service[0]);
+        }
+        // Link ecore::EObject -> aql::Services so all types inherit them
+        dictionary.addSuperType("ecore::EObject", AQL_SERVICES_TYPE);
     }
 
     /**

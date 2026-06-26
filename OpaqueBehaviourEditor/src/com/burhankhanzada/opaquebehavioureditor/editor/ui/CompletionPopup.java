@@ -45,7 +45,7 @@ public class CompletionPopup {
         Point caretLocation = styledText.getCaret().getLocation();
         Point displayPoint = styledText.toDisplay(caretLocation.x, caretLocation.y + styledText.getLineHeight());
         popupShell.setLocation(displayPoint);
-        popupShell.setSize(280, Math.min(proposals.size() * 22 + 6, CompletionEngine.MAX_PROPOSALS * 22 + 6));
+        popupShell.setSize(280, Math.min(proposals.size() * 22 + 6, CompletionEngine.MAX_VISIBLE_ROWS * 22 + 6));
 
         if (!popupShell.isVisible()) {
             popupShell.setVisible(true);

@@ -79,9 +79,9 @@ public class CompletionEngine {
                     contextType.startsWith("Union<") || contextType.startsWith("SubsetUnion<")) {
                     allowedMembers.clear(); // Only suggest collection methods
                     for (String m : ModelValidator.MDE4CPP_COLLECTION_METHODS) allowedMembers.add(m);
-                } else if (dictionary.getTypeMembers().containsKey(contextType)) {
-                    // It's a regular known type
-                    allowedMembers = new TreeSet<>(dictionary.getTypeMembers().get(contextType).keySet());
+                } else if (dictionary.getTypeMembers().containsKey(contextType) || !dictionary.getAllTypeMembers(contextType).isEmpty()) {
+                    // It's a regular known type — include inherited members from supertypes
+                    allowedMembers = new TreeSet<>(dictionary.getAllTypeMembers(contextType).keySet());
                 }
             }
         }

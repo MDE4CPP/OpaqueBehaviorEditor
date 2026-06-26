@@ -67,8 +67,8 @@ public class ModelValidator {
                     for (String cm : MDE4CPP_COLLECTION_METHODS) {
                         if (cm.equals(methodName)) { isValid = true; break; }
                     }
-                } else if (dictionary.getClassElements().containsKey(rawType) || dictionary.getTypeMembers().containsKey(rawType)) {
-                    Map<String, String> members = dictionary.getTypeMembers().get(rawType);
+                } else if (dictionary.getClassElements().containsKey(rawType) || dictionary.getTypeMembers().containsKey(rawType) || !dictionary.getAllTypeMembers(rawType).isEmpty()) {
+                    Map<String, String> members = dictionary.getAllTypeMembers(rawType);
                     if (members != null && members.containsKey(methodName)) {
                         isValid = true;
                     }

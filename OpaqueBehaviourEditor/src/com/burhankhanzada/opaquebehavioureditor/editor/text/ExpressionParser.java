@@ -57,12 +57,14 @@ public class ExpressionParser {
                 // Base variable
                 currentType = resolveVariableType(part, fullText);
             } else {
-                // Method or property on currentType
-                if (currentType != null && dictionary.getTypeMembers().containsKey(currentType)) {
-                    Map<String, String> members = dictionary.getTypeMembers().get(currentType);
-                    currentType = members.get(part); // Get the return type!
-                } else {
-                    currentType = null;
+                // Method or property on currentType (including inherited members)
+                if (currentType != null) {
+                    Map<String, String> allMembers = dictionary.getAllTypeMembers(currentType);
+                    if (!allMembers.isEmpty()) {
+                        currentType = allMembers.get(part); // Get the return type!
+                    } else {
+                        currentType = null;
+                    }
                 }
             }
             

@@ -1,0 +1,82 @@
+package de.tu_ilmenau.sse.opaquebehavioureditor.markers;
+
+import java.util.List;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.ecore.EValidator;
+import org.eclipse.uml2.uml.OpaqueBehavior;
+
+import de.tu_ilmenau.sse.opaquebehavioureditor.editor.text.LanguageDef;
+import de.tu_ilmenau.sse.opaquebehavioureditor.editor.text.LanguageMapping;
+import de.tu_ilmenau.sse.opaquebehavioureditor.model.TextRange;
+import de.tu_ilmenau.sse.opaquebehavioureditor.model.ModelDictionary;
+import de.tu_ilmenau.sse.opaquebehavioureditor.model.ModelValidator;
+import de.tu_ilmenau.sse.opaquebehavioureditor.utils.PluginLogger;
+
+public class MarkerManager {
+
+    public static final String MARKER_ID = "de.tu_ilmenau.sse.opaquebehavioureditor.problem";
+
+    public static void updateMarkers(OpaqueBehavior behavior, List<String> bodies, List<String> languages, ModelDictionary dictionary) {
+        IFile file = getWorkspaceFile(behavior);
+        if (file == null) return;
+
+        try {
+            // Delete existing markers for this specific behavior
+            String behaviorURI = EcoreUtil.getURI(behavior).toString();
+            IMarker[] existingMarkers = file.findMarkers(MARKER_ID, true, IResource.DEPTH_ZERO);
+            for (IMarker m : existingMarkers) {
+                if (behaviorURI.equals(m.getAttribute(EValidator.URI_ATTRIBUTE))) {
+                    m.delete();
+                }
+            }
+
+            // Run validation and create new markers
+            ModelValidator validator = new ModelValidator(dictionary);
+            for (int i = 0; i < bodies.size(); i++) {
+                String body = bodies.get(i);
+                String lang = i < languages.size() ? languages.get(i) : "";
+                LanguageDef langDef = LanguageMapping.getLanguageDef(lang);
+                
+                List<TextRange> errors = validator.validateMemberAccess(body, langDef);
+                for (TextRange error : errors) {
+                    createMarker(file, behaviorURI, body, error, lang);
+                }
+            }
+        } catch (CoreException e) {
+            PluginLogger.logError("Failed to update model validation markers", e);
+        }
+    }
+
+    private static void createMarker(IFile file, String behaviorURI, String body, TextRange error, String lang) throws CoreException {
+        IMarker marker = file.createMarker(MARKER_ID);
+        marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+        
+        // Extract the problematic text for the error message
+        String errorText = body.substring(error.offset, error.offset + error.length);
+        marker.setAttribute(IMarker.MESSAGE, "Resolution Error: Unrecognized member '" + errorText + "'");
+        
+        // Character bounds for the problem view highlight
+        marker.setAttribute(IMarker.CHAR_START, error.offset);
+        marker.setAttribute(IMarker.CHAR_END, error.offset + error.length);
+        
+        // Link to the EMF element so Papyrus can navigate to it
+        marker.setAttribute(EValidator.URI_ATTRIBUTE, behaviorURI);
+    }
+
+    private static IFile getWorkspaceFile(OpaqueBehavior behavior) {
+        Resource eResource = behavior.eResource();
+        if (eResource != null && eResource.getURI().isPlatformResource()) {
+            String path = eResource.getURI().toPlatformString(true);
+            return ResourcesPlugin.getWorkspace().getRoot().getFile(new Path(path));
+        }
+        return null;
+    }
+}

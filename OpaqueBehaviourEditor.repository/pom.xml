@@ -4,13 +4,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>com.burhankhanzada.opaquebehavioureditor</groupId>
-    <artifactId>com.burhankhanzada.opaquebehavioureditor.parent</artifactId>
+    <groupId>de.tu-ilmenau.sse.opaquebehavioureditor</groupId>
+    <artifactId>de.tu-ilmenau.sse.opaquebehavioureditor.parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>com.burhankhanzada.opaquebehavioureditor.repository</artifactId>
+  <artifactId>de.tu-ilmenau.sse.opaquebehavioureditor.repository</artifactId>
   <packaging>eclipse-repository</packaging>
 
 </project>

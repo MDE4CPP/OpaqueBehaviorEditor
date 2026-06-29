@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: UML OpaqueBehaviour Body Editor
-Bundle-SymbolicName: com.burhankhanzada.opaquebehavioureditor;singleton:=true
+Bundle-SymbolicName: de.tu-ilmenau.sse.opaquebehavioureditor;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: com.burhankhanzada.opaquebehavioureditor.Activator
+Bundle-Activator: de.tu_ilmenau.sse.opaquebehavioureditor.Activator
 Bundle-Vendor: Custom
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
@@ -17,20 +17,20 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.tm4e.ui,
  org.eclipse.core.resources
 Bundle-RequiredExecutionEnvironment: JavaSE-21
-Automatic-Module-Name: com.burhankhanzada.opaquebehavioureditor
+Automatic-Module-Name: de.tu_ilmenau.sse.opaquebehavioureditor
 Bundle-ActivationPolicy: lazy
-Export-Package: com.burhankhanzada.opaquebehavioureditor,
- com.burhankhanzada.opaquebehavioureditor.editor,
- com.burhankhanzada.opaquebehavioureditor.editor.actions,
- com.burhankhanzada.opaquebehavioureditor.editor.core,
- com.burhankhanzada.opaquebehavioureditor.editor.folding,
- com.burhankhanzada.opaquebehavioureditor.editor.highlighting,
- com.burhankhanzada.opaquebehavioureditor.editor.quickfix,
- com.burhankhanzada.opaquebehavioureditor.editor.text,
- com.burhankhanzada.opaquebehavioureditor.editor.text.languages,
- com.burhankhanzada.opaquebehavioureditor.editor.text.translators,
- com.burhankhanzada.opaquebehavioureditor.editor.ui,
- com.burhankhanzada.opaquebehavioureditor.markers,
- com.burhankhanzada.opaquebehavioureditor.model,
- com.burhankhanzada.opaquebehavioureditor.utils
+Export-Package: de.tu_ilmenau.sse.opaquebehavioureditor,
+ de.tu_ilmenau.sse.opaquebehavioureditor.editor,
+ de.tu_ilmenau.sse.opaquebehavioureditor.editor.actions,
+ de.tu_ilmenau.sse.opaquebehavioureditor.editor.core,
+ de.tu_ilmenau.sse.opaquebehavioureditor.editor.folding,
+ de.tu_ilmenau.sse.opaquebehavioureditor.editor.highlighting,
+ de.tu_ilmenau.sse.opaquebehavioureditor.editor.quickfix,
+ de.tu_ilmenau.sse.opaquebehavioureditor.editor.text,
+ de.tu_ilmenau.sse.opaquebehavioureditor.editor.text.languages,
+ de.tu_ilmenau.sse.opaquebehavioureditor.editor.text.translators,
+ de.tu_ilmenau.sse.opaquebehavioureditor.editor.ui,
+ de.tu_ilmenau.sse.opaquebehavioureditor.markers,
+ de.tu_ilmenau.sse.opaquebehavioureditor.model,
+ de.tu_ilmenau.sse.opaquebehavioureditor.utils
 

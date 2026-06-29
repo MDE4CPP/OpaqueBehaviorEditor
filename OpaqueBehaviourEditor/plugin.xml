@@ -5,7 +5,7 @@
   <!-- Command definition -->
   <extension point="org.eclipse.ui.commands">
     <command
-      id="com.burhankhanzada.opaquebehavioureditor.command.openBodyEditor"
+      id="de.tu-ilmenau.sse.opaquebehavioureditor.command.openBodyEditor"
       name="Open OpaqueBehavior Editor">
     </command>
   </extension>
@@ -13,15 +13,15 @@
   <!-- Handler -->
   <extension point="org.eclipse.ui.handlers">
     <handler
-      commandId="com.burhankhanzada.opaquebehavioureditor.command.openBodyEditor"
-      class="com.burhankhanzada.opaquebehavioureditor.OpenBodyEditorHandler" />
+      commandId="de.tu-ilmenau.sse.opaquebehavioureditor.command.openBodyEditor"
+      class="de.tu_ilmenau.sse.opaquebehavioureditor.OpenBodyEditorHandler" />
   </extension>
 
   <!-- Menu Contribution to show the command in a context menu -->
   <extension point="org.eclipse.ui.menus">
     <menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=additions">
       <command
-        commandId="com.burhankhanzada.opaquebehavioureditor.command.openBodyEditor"
+        commandId="de.tu-ilmenau.sse.opaquebehavioureditor.command.openBodyEditor"
         label="Open OpaqueBehavior Editor">
         <!-- Show this menu item ONLY when the user right-clicks an OpaqueBehavior -->
         <visibleWhen checkEnabled="false">
@@ -40,7 +40,7 @@
 
   <!-- Custom Marker for UML Validation Errors -->
   <extension point="org.eclipse.core.resources.markers"
-    id="com.burhankhanzada.opaquebehavioureditor.problem"
+    id="de.tu-ilmenau.sse.opaquebehavioureditor.problem"
     name="OpaqueBehavior Error">
     <super type="org.eclipse.core.resources.problemmarker" />
     <super type="org.eclipse.core.resources.textmarker" />

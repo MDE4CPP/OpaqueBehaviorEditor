@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-  id="com.burhankhanzada.opaquebehavioureditor.feature"
+  id="de.tu-ilmenau.sse.opaquebehavioureditor.feature"
   label="OpaqueBehaviour Editor Feature"
   version="1.0.0.qualifier"
   provider-name="Burhan Khanzada">
@@ -10,7 +10,7 @@
   </description>
 
   <plugin
-    id="com.burhankhanzada.opaquebehavioureditor"
+    id="de.tu-ilmenau.sse.opaquebehavioureditor"
     download-size="0"
     install-size="0"
     version="0.0.0"

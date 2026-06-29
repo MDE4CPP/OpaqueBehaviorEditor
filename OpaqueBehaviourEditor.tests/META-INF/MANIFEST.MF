@@ -1,11 +1,11 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: UML OpaqueBehaviour Body Editor Tests
-Bundle-SymbolicName: com.burhankhanzada.opaquebehavioureditor.tests
+Bundle-SymbolicName: de.tu-ilmenau.sse.opaquebehavioureditor.tests
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: Custom
-Fragment-Host: com.burhankhanzada.opaquebehavioureditor
+Fragment-Host: de.tu-ilmenau.sse.opaquebehavioureditor
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Require-Bundle: org.junit;bundle-version="4.13.0"
-Automatic-Module-Name: com.burhankhanzada.opaquebehavioureditor.tests
+Automatic-Module-Name: de.tu-ilmenau.sse.opaquebehavioureditor.tests
 

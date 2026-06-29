@@ -1,0 +1,142 @@
+package de.tu_ilmenau.sse.opaquebehavioureditor.model;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import de.tu_ilmenau.sse.opaquebehavioureditor.editor.text.LanguageDef;
+import de.tu_ilmenau.sse.opaquebehavioureditor.editor.text.ExpressionParser;
+import de.tu_ilmenau.sse.opaquebehavioureditor.editor.text.TextScanState;
+
+public class ModelValidator {
+
+    public static final String[] COMMON_METHODS = {
+        "add", "remove", "clear", "size", "empty", "front", "back", "insert", "erase", 
+        "push_back", "pop_back", "begin", "end", "find", "count", "length", "substr", "at",
+        // EMF standard methods
+        "eSet", "eGet", "eIsSet", "eUnset", "eClass", "eContainer", "eContents",
+        "eAllContents", "eCrossReferences", "eResource", "eIsProxy", "eResolveProxy"
+    };
+
+    public static final String[] MDE4CPP_COLLECTION_METHODS = {
+        "add", "insert", "remove", "erase", "clear", "size", "empty", 
+        "front", "back", "begin", "end", "at"
+    };
+
+    private static final Pattern MEMBER_ACCESS_PATTERN = Pattern.compile("->[ \\t]*([A-Za-z0-9_]+)");
+
+    private final ModelDictionary dictionary;
+
+    public ModelValidator(ModelDictionary dictionary) {
+        this.dictionary = dictionary;
+    }
+
+    public ModelDictionary getDictionary() {
+        return dictionary;
+    }
+
+    public List<TextRange> validateMemberAccess(String text, LanguageDef currentLangDef) {
+        List<TextRange> errors = new ArrayList<>();
+        if (currentLangDef == null || !currentLangDef.name.equals("CPP")) {
+            return errors;
+        }
+        
+        java.util.regex.Matcher m = MEMBER_ACCESS_PATTERN.matcher(text);
+        
+        while (m.find()) {
+            String methodName = m.group(1);
+            int methodOffset = m.start(1);
+            int methodLength = methodName.length();
+            
+            String textBefore = text.substring(0, m.start() + 2);
+            String rawType = ExpressionParser.resolveContextTypeFromText(textBefore, dictionary, text);
+            
+            if (rawType != null) {
+                boolean isCollection = rawType.startsWith("Bag<") || rawType.startsWith("Set<") || 
+                                       rawType.startsWith("OrderedSet<") || rawType.startsWith("Sequence<") ||
+                                       rawType.startsWith("Union<") || rawType.startsWith("SubsetUnion<");
+                                       
+                if (rawType.startsWith("std::shared_ptr<")) {
+                    rawType = rawType.substring(16, rawType.length() - 1);
+                }
+                
+                boolean isValid = false;
+                
+                if (isCollection) {
+                    for (String cm : MDE4CPP_COLLECTION_METHODS) {
+                        if (cm.equals(methodName)) { isValid = true; break; }
+                    }
+                } else if (dictionary.getClassElements().containsKey(rawType) || dictionary.getTypeMembers().containsKey(rawType) || !dictionary.getAllTypeMembers(rawType).isEmpty()) {
+                    Map<String, String> members = dictionary.getAllTypeMembers(rawType);
+                    if (members != null && members.containsKey(methodName)) {
+                        isValid = true;
+                    }
+                    if (!isValid) {
+                        for (String cm : COMMON_METHODS) {
+                            if (cm.equals(methodName)) { isValid = true; break; }
+                        }
+                    }
+                } else {
+                    isValid = true;
+                }
+                
+                if (!isValid) {
+                    errors.add(new TextRange(methodOffset, methodLength, "Method '" + methodName + "' is not defined in class '" + rawType + "'"));
+                }
+            }
+        }
+        return errors;
+    }
+
+    /**
+     * Validates basic syntax like unmatched brackets.
+     */
+    public List<TextRange> validateSyntax(String text, LanguageDef currentLangDef) {
+        List<TextRange> errors = new ArrayList<>();
+        if (text == null || text.isEmpty()) return errors;
+
+        java.util.Stack<Integer> openParen = new java.util.Stack<>();
+        java.util.Stack<Integer> openBrace = new java.util.Stack<>();
+        java.util.Stack<Integer> openBracket = new java.util.Stack<>();
+
+        TextScanState state = new TextScanState();
+
+        for (int i = 0; i < text.length(); i++) {
+            boolean wasIgnored = state.isIgnored();
+            int skip = state.process(text, i);
+            
+            if (wasIgnored || state.isIgnored()) {
+                i += skip;
+                continue;
+            }
+            
+            char c = text.charAt(i);
+
+            if (c == '(') openParen.push(i);
+            else if (c == '{') openBrace.push(i);
+            else if (c == '[') openBracket.push(i);
+            else if (c == ')') {
+                if (openParen.isEmpty()) errors.add(new TextRange(i, 1, "Unmatched closing ')'"));
+                else openParen.pop();
+            }
+            else if (c == '}') {
+                if (openBrace.isEmpty()) errors.add(new TextRange(i, 1, "Unmatched closing '}'"));
+                else openBrace.pop();
+            }
+            else if (c == ']') {
+                if (openBracket.isEmpty()) errors.add(new TextRange(i, 1, "Unmatched closing ']'"));
+                else openBracket.pop();
+            }
+            i += skip;
+        }
+
+        while (!openParen.isEmpty()) errors.add(new TextRange(openParen.pop(), 1, "Unclosed opening '('"));
+        while (!openBrace.isEmpty()) errors.add(new TextRange(openBrace.pop(), 1, "Unclosed opening '{'"));
+        while (!openBracket.isEmpty()) errors.add(new TextRange(openBracket.pop(), 1, "Unclosed opening '['"));
+
+        return errors;
+    }
+
+
+}

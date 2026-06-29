@@ -17,10 +17,14 @@ Before you start, make sure you have the following installed on your system:
 To compile the plugins, execute the unit tests, and package the update site, run the following Maven command from the project root:
 
 ```bash
-# Ensure JAVA_HOME points to Java 17 or 21+
+# Set JAVA_HOME to Java 17 or 21+
 export JAVA_HOME=/path/to/your/jdk-21
 
+# Option A: Build and run all unit tests (Recommended)
 mvn clean verify
+
+# Option B: Fast build (skips running unit tests)
+mvn clean package -DskipTests
 ```
 
 ### 📂 Build Outputs

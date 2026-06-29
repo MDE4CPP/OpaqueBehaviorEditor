@@ -8,9 +8,18 @@ A specialized Eclipse Plugin designed to provide a rich, intelligent editing exp
 
 Instead of relying on basic, unformatted text boxes for defining model behaviors, this plugin injects a fully-featured, context-aware code editor directly into the Eclipse IDE.
 
-![UML Preview](uml_preview.png)
+![UML Preview](assets/images/previews/uml_preview.png)
 
-![Ecore Preview](ecore_preview.png)
+![Ecore Preview](assets/images/previews/ecore_preview.png)
+
+## 🚀 Usage
+
+To open the custom OpaqueBehaviour code editor:
+
+| **1. UML OpaqueBehavior**                                                                                    | **2. Ecore Annotation**                                                                                   |
+| :----------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------- |
+| Right-click on any `OpaqueBehavior` element in the Model Explorer and select **Open OpaqueBehavior Editor**. | Right-click on an annotation entry or value in the Ecore model and select **Open OpaqueBehavior Editor**. |
+| ![Right-click UML OpaqueBehavior](assets/images/workflow/right_click_uml_oapacue_behaviour.png)              | ![Right-click Ecore Annotation](assets/images/workflow/right_click_ecore_annotation.png)                  |
 
 ## ✨ Key Features
 

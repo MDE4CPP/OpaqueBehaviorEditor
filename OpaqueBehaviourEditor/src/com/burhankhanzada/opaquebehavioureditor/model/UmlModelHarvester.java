@@ -107,6 +107,33 @@ public class UmlModelHarvester extends AbstractModelHarvester {
                 registerGlobalFeature(p.getName(), typeName, ownerName, p, dictionary);
             }
         }
+        
+        // Register EMF standard methods so they appear in code completion
+        registerEmfMethods(dictionary);
+    }
+    
+    private static final String[][] EMF_METHODS = {
+        {"eClass", "ecore::EClass"},
+        {"eContainer", "ecore::EObject"},
+        {"eContents", "Sequence(ecore::EObject)"},
+        {"eAllContents", "Sequence(ecore::EObject)"},
+        {"eCrossReferences", "Sequence(ecore::EObject)"},
+        {"eResource", "ecore::EResource"},
+        {"eIsProxy", "Boolean"},
+        {"eResolveProxy", "Boolean"},
+        {"eGet", "OclAny"},
+        {"eSet", "void"},
+        {"eIsSet", "Boolean"},
+        {"eUnset", "void"}
+    };
+
+    private static void registerEmfMethods(ModelDictionary dictionary) {
+        for (String[] method : EMF_METHODS) {
+            dictionary.addTypeMember("ecore::EObject", method[0], method[1]);
+            dictionary.addAutocompleteWord(method[0]);
+        }
+        // Link uml::Element -> ecore::EObject so UML types inherit them
+        dictionary.addSuperType("uml::Element", "ecore::EObject");
     }
 
     /**

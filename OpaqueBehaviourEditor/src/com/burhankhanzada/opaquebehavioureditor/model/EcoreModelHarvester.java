@@ -42,6 +42,19 @@ public class EcoreModelHarvester extends AbstractModelHarvester {
         {"lineSeparator", "String"},
         {"toString", "String"},
         {"getProperty", "String"},
+        // EMF standard methods
+        {"eClass", "ecore::EClass"},
+        {"eContainer", "ecore::EObject"},
+        {"eContents", "Sequence(ecore::EObject)"},
+        {"eAllContents", "Sequence(ecore::EObject)"},
+        {"eCrossReferences", "Sequence(ecore::EObject)"},
+        {"eResource", "ecore::EResource"},
+        {"eIsProxy", "Boolean"},
+        {"eResolveProxy", "Boolean"},
+        {"eGet", "OclAny"},
+        {"eSet", "void"},
+        {"eIsSet", "Boolean"},
+        {"eUnset", "void"},
     };
 
     public static void harvest(EPackage ePackage, Set<String> contextTypes, ModelDictionary dictionary) {
@@ -87,6 +100,9 @@ public class EcoreModelHarvester extends AbstractModelHarvester {
                         dictionary.addSuperType(c.getName(), superType.getName());
                     }
                 }
+                
+                // ALL EClasses implicitly inherit from ecore::EObject
+                dictionary.addSuperType(c.getName(), "ecore::EObject");
 
                 // Harvest methods from the Ecore metaclass hierarchy (e.g. ecore::EClass, ecore::EObject).
                 // These are runtime methods available on all EObjects in EMF.

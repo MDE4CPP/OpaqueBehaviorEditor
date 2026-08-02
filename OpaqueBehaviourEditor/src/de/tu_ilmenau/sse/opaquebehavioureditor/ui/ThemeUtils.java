@@ -7,9 +7,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.internal.cocoa.*;
 
-@SuppressWarnings("restriction")
 public class ThemeUtils {
     
     public static Button createPushButton(Composite parent, String label) {
@@ -77,33 +75,90 @@ public class ThemeUtils {
      * natively but fail to invert the text color, making the items look black/dark-grey 
      * on a dark background (appearing disabled). 
      * 
-     * This method uses internal Cocoa bindings to explicitly rewrite the NSAttributedString 
-     * foreground color to pure white on the underlying NSPopUpButton menu items.
+     * This method uses internal Cocoa bindings via reflection to explicitly rewrite the 
+     * NSAttributedString foreground color to pure white on the underlying NSPopUpButton menu items.
+     * Using reflection prevents NoClassDefFoundError on Windows and Linux where cocoa packages do not exist.
      */
     public static void fixComboDarkTheme(Combo combo) {
         if (!System.getProperty("os.name").toLowerCase().contains("mac")) return;
 
         try {
-            NSPopUpButton button = new NSPopUpButton(combo.view.id);
-            NSMenu menu = button.menu();
-            if (menu == null) return;
-            NSArray items = menu.itemArray();
+            java.lang.reflect.Field viewField = combo.getClass().getField("view");
+            Object viewObj = viewField.get(combo);
+            if (viewObj == null) return;
 
-            long count = items.count();
-            for (int i = 0; i < count; i++) {
-                NSMenuItem item = new NSMenuItem(items.objectAtIndex(i));
+            java.lang.reflect.Field idField = viewObj.getClass().getField("id");
+            long viewId = idField.getLong(viewObj);
+            if (viewId == 0) return;
 
-                // Build white attributed string
-                NSMutableDictionary attrs = NSMutableDictionary.dictionaryWithCapacity(1);
-                NSColor white = NSColor.colorWithDeviceRed(1.0, 1.0, 1.0, 1.0);
-                attrs.setObject(white, OS.NSForegroundColorAttributeName);
+            Class<?> idClass = Class.forName("org.eclipse.swt.internal.cocoa.id");
+            Class<?> nsPopUpButtonClass = Class.forName("org.eclipse.swt.internal.cocoa.NSPopUpButton");
+            Object buttonObj = nsPopUpButtonClass.getConstructor(long.class).newInstance(viewId);
 
-                NSAttributedString attrTitle = new NSAttributedString();
-                attrTitle.initWithString(item.title(), attrs);
-                item.setAttributedTitle(attrTitle);
+            Object menuObj = nsPopUpButtonClass.getMethod("menu").invoke(buttonObj);
+            if (menuObj == null) return;
+
+            Class<?> nsMenuClass = Class.forName("org.eclipse.swt.internal.cocoa.NSMenu");
+            Object itemsObj = nsMenuClass.getMethod("itemArray").invoke(menuObj);
+            if (itemsObj == null) return;
+
+            Class<?> nsArrayClass = Class.forName("org.eclipse.swt.internal.cocoa.NSArray");
+            long count = ((Number) nsArrayClass.getMethod("count").invoke(itemsObj)).longValue();
+
+            java.lang.reflect.Method objectAtIndexMethod = nsArrayClass.getMethod("objectAtIndex", long.class);
+
+            Class<?> nsMenuItemClass = Class.forName("org.eclipse.swt.internal.cocoa.NSMenuItem");
+            java.lang.reflect.Constructor<?> nsMenuItemCtor = nsMenuItemClass.getConstructor(idClass);
+            java.lang.reflect.Method titleMethod = nsMenuItemClass.getMethod("title");
+
+            Class<?> nsAttrStringClass = Class.forName("org.eclipse.swt.internal.cocoa.NSAttributedString");
+            java.lang.reflect.Method setAttributedTitleMethod = nsMenuItemClass.getMethod("setAttributedTitle", nsAttrStringClass);
+
+            Class<?> nsMutableDictClass = Class.forName("org.eclipse.swt.internal.cocoa.NSMutableDictionary");
+            java.lang.reflect.Method dictWithCapacityMethod = null;
+            for (java.lang.reflect.Method m : nsMutableDictClass.getMethods()) {
+                if (m.getName().equals("dictionaryWithCapacity")) {
+                    dictWithCapacityMethod = m;
+                    break;
+                }
+            }
+            if (dictWithCapacityMethod == null) return;
+
+            Object attrsObj = dictWithCapacityMethod.invoke(null, 1);
+
+            Class<?> nsColorClass = Class.forName("org.eclipse.swt.internal.cocoa.NSColor");
+            java.lang.reflect.Method colorWithDeviceRedMethod = nsColorClass.getMethod("colorWithDeviceRed", double.class, double.class, double.class, double.class);
+            Object whiteColorObj = colorWithDeviceRedMethod.invoke(null, 1.0, 1.0, 1.0, 1.0);
+
+            Class<?> osClass = Class.forName("org.eclipse.swt.internal.cocoa.OS");
+            Object fgAttrObj = osClass.getField("NSForegroundColorAttributeName").get(null);
+
+            java.lang.reflect.Method setObjectMethod = null;
+            for (java.lang.reflect.Method m : nsMutableDictClass.getMethods()) {
+                if (m.getName().equals("setObject") && m.getParameterTypes().length == 2) {
+                    setObjectMethod = m;
+                    break;
+                }
+            }
+            if (setObjectMethod == null) return;
+            setObjectMethod.invoke(attrsObj, whiteColorObj, fgAttrObj);
+
+            Class<?> nsStringClass = Class.forName("org.eclipse.swt.internal.cocoa.NSString");
+            java.lang.reflect.Constructor<?> nsAttrStringCtor = nsAttrStringClass.getConstructor();
+            java.lang.reflect.Method initWithStringMethod = nsAttrStringClass.getMethod("initWithString", nsStringClass, nsMutableDictClass);
+
+            for (long i = 0; i < count; i++) {
+                Object itemHandle = objectAtIndexMethod.invoke(itemsObj, i);
+                Object menuItemObj = nsMenuItemCtor.newInstance(itemHandle);
+                Object titleObj = titleMethod.invoke(menuItemObj);
+
+                Object attrTitleObj = nsAttrStringCtor.newInstance();
+                initWithStringMethod.invoke(attrTitleObj, titleObj, attrsObj);
+                setAttributedTitleMethod.invoke(menuItemObj, attrTitleObj);
             }
         } catch (Throwable t) {
             // Ignore, likely not running on Cocoa or incompatible SWT version
         }
     }
 }
+

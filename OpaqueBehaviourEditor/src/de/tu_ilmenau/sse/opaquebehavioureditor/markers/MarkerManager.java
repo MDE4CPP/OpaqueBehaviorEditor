@@ -46,6 +46,7 @@ public class MarkerManager {
                 LanguageDef langDef = LanguageMapping.getLanguageDef(lang);
                 
                 List<TextRange> errors = validator.validateMemberAccess(body, langDef);
+                errors.addAll(validator.validateStatements(body, langDef));
                 for (TextRange error : errors) {
                     createMarker(file, behaviorURI, body, error, lang);
                 }

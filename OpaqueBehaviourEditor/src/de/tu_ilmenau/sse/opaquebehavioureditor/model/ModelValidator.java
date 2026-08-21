@@ -29,7 +29,7 @@ public class ModelValidator {
      * MDE4CPP models every multi-valued feature as a Bag<T>; Union, Subset and SubsetUnion are
      * the annotated variants and all derive from Bag, so they share its API.
      */
-    private static final String[] COLLECTION_TYPES = { "Bag", "Union", "Subset", "SubsetUnion" };
+    static final String[] COLLECTION_TYPES = { "Bag", "Union", "Subset", "SubsetUnion" };
 
     public static boolean isCollectionType(String type) {
         if (type == null) return false;
@@ -103,6 +103,54 @@ public class ModelValidator {
             }
         }
         return errors;
+    }
+
+    /** A statement made up of nothing but one identifier, e.g. {@code bookMasadsad;}. */
+    private static final Pattern LONE_IDENTIFIER_STATEMENT =
+            Pattern.compile("(?m)(?:^|[;{}])\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*;");
+
+    /**
+     * Reports statements that consist of a single identifier. Such a statement evaluates a name and
+     * throws the result away, so it is always a mistake - most often a half-typed line like
+     * {@code bookMasadsad;}. Whether the name is known decides only the wording.
+     *
+     * <p>Deliberately narrow: a general undeclared-identifier check is not possible here, because
+     * operation parameters, impl-only member fields and everything coming from the includes are
+     * invisible to the editor.
+     */
+    public List<TextRange> validateStatements(String text, LanguageDef currentLangDef) {
+        List<TextRange> errors = new ArrayList<>();
+        if (text == null || currentLangDef == null || !currentLangDef.name.equals("CPP")) {
+            return errors;
+        }
+
+        boolean[] isCode = TextScanState.codeMask(text);
+        java.util.Set<String> known = new java.util.HashSet<>(dictionary.getAutocompleteWords());
+        known.addAll(ExpressionParser.declaredVariables(text, text.length()));
+        for (String k : currentLangDef.keywords) known.add(k);
+        for (String t : currentLangDef.types) known.add(t);
+        known.add(AbstractModelHarvester.FACTORY_TYPE);
+
+        java.util.regex.Matcher m = LONE_IDENTIFIER_STATEMENT.matcher(text);
+        while (m.find()) {
+            int at = m.start(1);
+            if (!isCode[at]) continue;
+            String name = m.group(1);
+            // `break;`, `continue;`, `return;` are statements in their own right
+            if (isKeyword(name, currentLangDef)) continue;
+            String message = known.contains(name)
+                    ? "Statement '" + name + ";' has no effect"
+                    : "'" + name + "' is not declared in this body or the model";
+            errors.add(new TextRange(at, name.length(), message));
+        }
+        return errors;
+    }
+
+    private static boolean isKeyword(String word, LanguageDef langDef) {
+        for (String k : langDef.keywords) {
+            if (k.equals(word)) return true;
+        }
+        return false;
     }
 
     /**

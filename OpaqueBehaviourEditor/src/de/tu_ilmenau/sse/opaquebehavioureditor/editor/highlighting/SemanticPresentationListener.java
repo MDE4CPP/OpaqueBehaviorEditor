@@ -107,6 +107,7 @@ public class SemanticPresentationListener implements ITextPresentationListener {
         if (foldingManager == null || !foldingManager.hasCollapsedRegions()) {
             List<TextRange> errors = modelValidator.validateMemberAccess(codeText.getText(), langDef);
             errors.addAll(modelValidator.validateSyntax(codeText.getText(), langDef));
+            errors.addAll(modelValidator.validateStatements(codeText.getText(), langDef));
             
             for (TextRange err : errors) {
                 StyleRange style = new StyleRange(err.offset, err.length, null, null);

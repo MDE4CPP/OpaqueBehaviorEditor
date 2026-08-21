@@ -116,4 +116,34 @@ public class ModelValidatorTest {
         assertTrue(ModelValidator.isCollectionType("Bag<Book>"));
         assertFalse(ModelValidator.isCollectionType("Book"));
     }
+
+    @Test
+    public void aLoneUndeclaredIdentifierStatementIsAnError() {
+        String code = "std::shared_ptr<Library> lib;\nbookMasadsad;\n";
+        List<TextRange> errors = validator.validateStatements(code, cppLangDef);
+        assertEquals(1, errors.size());
+        assertEquals("'bookMasadsad' is not declared in this body or the model", errors.get(0).message);
+        assertEquals(code.indexOf("bookMasadsad"), errors.get(0).offset);
+    }
+
+    @Test
+    public void aLoneKnownIdentifierStatementStillHasNoEffect() {
+        String code = "std::shared_ptr<Library> lib;\nlib;\n";
+        List<TextRange> errors = validator.validateStatements(code, cppLangDef);
+        assertEquals(1, errors.size());
+        assertEquals("Statement 'lib;' has no effect", errors.get(0).message);
+    }
+
+    @Test
+    public void ordinaryStatementsAndKeywordsAreNotFlagged() {
+        String code = "std::shared_ptr<Library> lib;\n"
+                    + "lib->print();\n"
+                    + "int i = 0;\n"
+                    + "for (;;) { break; }\n"
+                    + "while (true) { continue; }\n"
+                    + "return;\n"
+                    + "//bookMasadsad;\n"
+                    + "std::string s = \"bookMasadsad;\";\n";
+        assertTrue(validator.validateStatements(code, cppLangDef).isEmpty());
+    }
 }

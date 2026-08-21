@@ -118,7 +118,8 @@ public class EcoreModelHarvester extends AbstractModelHarvester {
             if (obj instanceof EStructuralFeature p) {
                 String typeName = p.getEType() != null ? p.getEType().getName() : null;
                 String ownerName = p.getEContainingClass() != null ? p.getEContainingClass().getName() : null;
-                registerGlobalFeature(p.getName(), typeName, ownerName, p, dictionary);
+                boolean containment = p instanceof org.eclipse.emf.ecore.EReference r && r.isContainment();
+                registerGlobalFeature(p.getName(), typeName, ownerName, containment, p, dictionary);
             }
         }
 

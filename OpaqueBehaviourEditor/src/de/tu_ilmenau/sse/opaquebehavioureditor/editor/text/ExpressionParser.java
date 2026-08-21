@@ -87,6 +87,11 @@ public class ExpressionParser {
      */
     public static String resolveVariableType(String variableName, String fullText) {
         if (variableName == null || variableName.isBlank()) return null;
+
+        // The generated model factory is injected by the editor, not declared in the body.
+        if (de.tu_ilmenau.sse.opaquebehavioureditor.model.AbstractModelHarvester.FACTORY_TYPE.equals(variableName)) {
+            return variableName;
+        }
         
         java.util.regex.Pattern p1 = java.util.regex.Pattern.compile("std::(?:weak|shared|unique)_ptr<\\s*([A-Za-z0-9_:<>,\\s]+)\\s*>\\s+" + java.util.regex.Pattern.quote(variableName) + "\\b");
         java.util.regex.Matcher m1 = p1.matcher(fullText);

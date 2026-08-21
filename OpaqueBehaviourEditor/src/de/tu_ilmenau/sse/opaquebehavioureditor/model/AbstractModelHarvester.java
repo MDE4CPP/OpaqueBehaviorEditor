@@ -16,10 +16,14 @@ public abstract class AbstractModelHarvester {
         }
     }
 
+    /** Synthetic type carrying the generated factory's create* methods (see MDE4CPP <model>Factory.hpp). */
+    public static final String FACTORY_TYPE = "factory";
+
     protected static void registerClassCreate(String className, EObject obj, ModelDictionary dictionary) {
         if (className != null && !className.isBlank()) {
             dictionary.addAutocompleteWord("create" + className);
             dictionary.addGlobalElement("create" + className, obj);
+            dictionary.addTypeMember(FACTORY_TYPE, "create" + className, "std::shared_ptr<" + className + ">");
         }
     }
 
@@ -47,7 +51,7 @@ public abstract class AbstractModelHarvester {
         dictionary.addClassElement(className, opName, op);
     }
 
-    protected static void registerGlobalFeature(String pName, String typeName, String ownerName, EObject p, ModelDictionary dictionary) {
+    protected static void registerGlobalFeature(String pName, String typeName, String ownerName, boolean containment, EObject p, ModelDictionary dictionary) {
         if (pName != null && !pName.isBlank()) {
             dictionary.addAutocompleteWord(pName);
             dictionary.addGlobalElement(pName, p);
@@ -57,9 +61,13 @@ public abstract class AbstractModelHarvester {
             dictionary.addAutocompleteWord("set" + cap);
             dictionary.addGlobalElement("set" + cap, p);
             
-            if (typeName != null && ownerName != null) {
-                dictionary.addAutocompleteWord("create" + typeName + "_as_" + pName + "_in_" + ownerName);
-                dictionary.addGlobalElement("create" + typeName + "_as_" + pName + "_in_" + ownerName, p);
+            // MDE4CPP only generates create<T>_as_<ref>_in_<Owner> for containment/composite
+            // features - the owner must actually contain the created element.
+            if (containment && typeName != null && ownerName != null) {
+                String factoryMethod = "create" + typeName + "_as_" + pName + "_in_" + ownerName;
+                dictionary.addAutocompleteWord(factoryMethod);
+                dictionary.addGlobalElement(factoryMethod, p);
+                dictionary.addTypeMember(FACTORY_TYPE, factoryMethod, "std::shared_ptr<" + typeName + ">");
             }
         }
     }

@@ -9,6 +9,7 @@ import java.util.TreeSet;
 import de.tu_ilmenau.sse.opaquebehavioureditor.editor.text.LanguageDef;
 import de.tu_ilmenau.sse.opaquebehavioureditor.editor.text.LanguageMapping;
 import de.tu_ilmenau.sse.opaquebehavioureditor.editor.text.SnippetLibrary;
+import de.tu_ilmenau.sse.opaquebehavioureditor.model.AbstractModelHarvester;
 import de.tu_ilmenau.sse.opaquebehavioureditor.model.ModelDictionary;
 import de.tu_ilmenau.sse.opaquebehavioureditor.model.ModelValidator;
 
@@ -63,9 +64,11 @@ public class CompletionEngine {
         if (isMemberAccess) {
             allowedMembers = new TreeSet<>();
             
-            // By default, allow ANY member from any type as a fallback
-            for (Map<String, String> members : dictionary.getTypeMembers().values()) {
-                allowedMembers.addAll(members.keySet());
+            // By default, allow ANY member from any type as a fallback.
+            // The factory's create* methods are excluded - they are only valid on `factory->`.
+            for (Map.Entry<String, Map<String, String>> e : dictionary.getTypeMembers().entrySet()) {
+                if (AbstractModelHarvester.FACTORY_TYPE.equals(e.getKey())) continue;
+                allowedMembers.addAll(e.getValue().keySet());
             }
             if (currentLangDef != null && currentLangDef.name.equals(LanguageMapping.LANG_CPP)) {
                 for (String m : ModelValidator.COMMON_METHODS) allowedMembers.add(m);
@@ -89,7 +92,7 @@ public class CompletionEngine {
 
         for (String word : completionWords) {
             if (word.toLowerCase().startsWith(lower)) {
-                if (allowedMembers != null && !allowedMembers.contains(word) && !word.startsWith("create")) continue;
+                if (allowedMembers != null && !allowedMembers.contains(word)) continue;
                 if (!isMemberAccess && word.startsWith("create")) continue;
                 if (!matches.contains(word)) {
                     matches.add(word);
@@ -103,7 +106,7 @@ public class CompletionEngine {
             String[] docWords = documentText.split("[^a-zA-Z0-9_]+");
             for (String dw : docWords) {
                 if (dw.length() >= AUTO_TRIGGER_LENGTH && dw.toLowerCase().startsWith(lower) && !matches.contains(dw)) {
-                    if (allowedMembers != null && !allowedMembers.contains(dw) && !dw.startsWith("create")) continue;
+                    if (allowedMembers != null && !allowedMembers.contains(dw)) continue;
                     if (!isMemberAccess && dw.startsWith("create")) continue;
                     matches.add(dw);
                     if (matches.size() >= MAX_PROPOSALS) break;

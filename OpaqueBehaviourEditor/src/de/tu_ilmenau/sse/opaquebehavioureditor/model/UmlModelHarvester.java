@@ -104,7 +104,7 @@ public class UmlModelHarvester extends AbstractModelHarvester {
                     ownerName = ne.getName();
                 }
                 
-                registerGlobalFeature(p.getName(), typeName, ownerName, p, dictionary);
+                registerGlobalFeature(p.getName(), typeName, ownerName, p.isComposite(), p, dictionary);
             }
         }
         

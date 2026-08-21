@@ -44,4 +44,11 @@ public class ExpressionParserTest {
         String type = ExpressionParser.resolveContextTypeFromText(code, dictionary, code);
         assertNull("Should return null for unknown variables", type);
     }
+
+    @Test
+    public void testFactoryResolvesToTheSyntheticFactoryType() {
+        // `factory` is injected by the editor, it is never declared in the body text.
+        String code = "factory->";
+        assertEquals("factory", ExpressionParser.resolveContextTypeFromText(code, dictionary, code));
+    }
 }

@@ -64,11 +64,16 @@ public class SnippetLibrary {
         List<Snippet> list = new ArrayList<>();
         Properties props = new Properties();
 
-        // 1. Load default snippets
-        try (java.io.InputStream defaultIn = SnippetLibrary.class.getResourceAsStream("default_snippets.properties");
-             java.io.InputStreamReader reader = new java.io.InputStreamReader(defaultIn, java.nio.charset.StandardCharsets.UTF_8)) {
-            if (defaultIn != null) {
-                props.load(reader);
+        // 1. Load default snippets. The null check has to happen before the reader is built,
+        // otherwise a missing resource throws out of the resource list instead of being logged.
+        try (java.io.InputStream defaultIn = SnippetLibrary.class.getResourceAsStream("default_snippets.properties")) {
+            if (defaultIn == null) {
+                PluginLogger.logError("Could not find default_snippets.properties in classpath.", null);
+            } else {
+                try (java.io.InputStreamReader reader =
+                        new java.io.InputStreamReader(defaultIn, java.nio.charset.StandardCharsets.UTF_8)) {
+                    props.load(reader);
+                }
             }
         } catch (IOException e) {
             PluginLogger.logError("Failed to load default_snippets.properties", e);

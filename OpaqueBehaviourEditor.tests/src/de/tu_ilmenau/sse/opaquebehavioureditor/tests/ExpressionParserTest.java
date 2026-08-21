@@ -1,7 +1,9 @@
 package de.tu_ilmenau.sse.opaquebehavioureditor.tests;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -71,5 +73,21 @@ public class ExpressionParserTest {
     public void testCommentedOutDeclarationIsIgnored() {
         String code = "//std::shared_ptr<Book> x;\nstd::shared_ptr<Library> x;\nx->";
         assertEquals("Library", ExpressionParser.resolveContextTypeFromText(code, dictionary, code));
+    }
+
+    @Test
+    public void testDeclaredVariables() {
+        String code = "std::shared_ptr<LibraryModel> lm = factory->createLibraryModel();\n"
+                    + "std::string bookname = \"Magritte\";\n"
+                    + "int pages = 448;\n"
+                    + "//std::shared_ptr<Book> commented = nullptr;\n"
+                    + "lm->printLibrary();\n"
+                    + "return lm;\n";
+        java.util.Set<String> vars = ExpressionParser.declaredVariables(code, code.length());
+        assertTrue(vars.contains("lm"));
+        assertTrue(vars.contains("bookname"));
+        assertTrue(vars.contains("pages"));
+        assertFalse("declarations in comments are not variables", vars.contains("commented"));
+        assertFalse("`return lm;` is not a declaration", vars.contains("printLibrary"));
     }
 }

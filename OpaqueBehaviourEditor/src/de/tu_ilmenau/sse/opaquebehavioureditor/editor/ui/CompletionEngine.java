@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import de.tu_ilmenau.sse.opaquebehavioureditor.editor.text.ExpressionParser;
 import de.tu_ilmenau.sse.opaquebehavioureditor.editor.text.LanguageDef;
 import de.tu_ilmenau.sse.opaquebehavioureditor.editor.text.LanguageMapping;
 import de.tu_ilmenau.sse.opaquebehavioureditor.editor.text.SnippetLibrary;
@@ -19,7 +20,6 @@ public class CompletionEngine {
 
     private final ModelDictionary dictionary;
     private LanguageDef currentLangDef;
-    private final TreeSet<String> completionWords = new TreeSet<>();
     private static final int AUTO_TRIGGER_LENGTH = 2;
     public static final int MAX_PROPOSALS = 50;
     public static final int MAX_VISIBLE_ROWS = 15;
@@ -30,16 +30,20 @@ public class CompletionEngine {
 
     public void setLanguage(String language) {
         this.currentLangDef = LanguageMapping.getLanguageDef(language);
-        rebuildCompletionWords();
     }
 
-    private void rebuildCompletionWords() {
-        completionWords.clear();
+    /**
+     * The language's own words plus everything harvested from the model. Read on each query
+     * rather than cached, because the dictionary is filled after this engine is constructed.
+     */
+    private Set<String> completionWords() {
+        Set<String> words = new TreeSet<>();
         if (currentLangDef != null && !currentLangDef.isPlainText()) {
-            for (String kw : currentLangDef.keywords) completionWords.add(kw);
-            for (String tp : currentLangDef.types)    completionWords.add(tp);
+            for (String kw : currentLangDef.keywords) words.add(kw);
+            for (String tp : currentLangDef.types) words.add(tp);
         }
-        completionWords.addAll(dictionary.getAutocompleteWords());
+        words.addAll(dictionary.getAutocompleteWords());
+        return words;
     }
 
     public LanguageDef getCurrentLangDef() {
@@ -47,6 +51,12 @@ public class CompletionEngine {
     }
 
     public List<String> findMatches(String prefix, boolean isMemberAccess, String contextType, String documentText) {
+        return findMatches(prefix, isMemberAccess, contextType, documentText,
+                documentText == null ? 0 : documentText.length());
+    }
+
+    public List<String> findMatches(String prefix, boolean isMemberAccess, String contextType,
+            String documentText, int caretOffset) {
         List<String> matches = new ArrayList<>();
         String lower = prefix.toLowerCase();
 
@@ -94,7 +104,7 @@ public class CompletionEngine {
         // the model's own accessors in favour of whatever sorts early.
         Set<String> candidates = new LinkedHashSet<>();
 
-        for (String word : completionWords) {
+        for (String word : completionWords()) {
             if (word.toLowerCase().startsWith(lower)) {
                 if (allowedMembers != null && !allowedMembers.contains(word)) continue;
                 if (!isMemberAccess && word.startsWith("create")) continue;
@@ -117,8 +127,13 @@ public class CompletionEngine {
             }
         }
 
+        // Outside a member access the body's own variables are what the user reaches for first.
+        Set<String> variables = isMemberAccess
+                ? Set.of()
+                : ExpressionParser.declaredVariables(documentText, caretOffset);
+
         List<String> ranked = new ArrayList<>(candidates);
-        ranked.sort(Comparator.comparingInt((String w) -> rank(w, isMemberAccess, contextType))
+        ranked.sort(Comparator.comparingInt((String w) -> rank(w, isMemberAccess, contextType, variables))
                               .thenComparing(Comparator.naturalOrder()));
 
         for (String word : ranked) {
@@ -137,8 +152,13 @@ public class CompletionEngine {
      * and setters first, then its other members, then inherited ones, and only then the reflective
      * Ecore/OCL API that every object carries.
      */
-    private int rank(String word, boolean isMemberAccess, String contextType) {
-        if (!isMemberAccess || contextType == null) return RANK_PLAIN;
+    private int rank(String word, boolean isMemberAccess, String contextType, Set<String> variables) {
+        if (!isMemberAccess) {
+            if (variables.contains(word)) return RANK_VARIABLE;
+            if (isConstantName(word)) return RANK_CONSTANT;
+            return RANK_PLAIN;
+        }
+        if (contextType == null) return RANK_PLAIN;
 
         if (ModelValidator.isCollectionType(contextType)) {
             int used = COLLECTION_BY_USAGE.indexOf(word);
@@ -156,6 +176,15 @@ public class CompletionEngine {
         if (owner.equals(contextType)) return accessor ? RANK_OWN_ACCESSOR : RANK_OWN;
         return accessor ? RANK_INHERITED_ACCESSOR : RANK_INHERITED;
     }
+
+    /** SCREAMING_SNAKE_CASE, the shape of the generated package constants and of C++ macros. */
+    private static boolean isConstantName(String word) {
+        return word.length() > 1 && word.equals(word.toUpperCase())
+                && Character.isLetter(word.charAt(0));
+    }
+
+    private static final int RANK_VARIABLE = 0;
+    private static final int RANK_CONSTANT = 1;
 
     private static final int RANK_OWN_ACCESSOR = 0;
     private static final int RANK_INHERITED_ACCESSOR = 1;

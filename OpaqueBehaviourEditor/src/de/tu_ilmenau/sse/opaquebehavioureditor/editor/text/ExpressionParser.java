@@ -126,6 +126,43 @@ public class ExpressionParser {
         return null;
     }
 
+    /** Names that can precede an identifier without being its type. */
+    private static final java.util.Set<String> NOT_A_TYPE = java.util.Set.of(
+            "return", "new", "delete", "else", "case", "const", "static", "virtual", "public",
+            "private", "protected", "class", "struct", "template", "typename", "operator",
+            "using", "namespace", "if", "while", "for", "switch", "do", "break", "continue",
+            "throw", "std");
+
+    private static final java.util.regex.Pattern SMART_PTR_DECL = java.util.regex.Pattern.compile(
+            "std::(?:weak|shared|unique)_ptr<\\s*[A-Za-z0-9_:<>,\\s]+\\s*>\\s+([A-Za-z_][A-Za-z0-9_]*)\\b");
+
+    private static final java.util.regex.Pattern PLAIN_DECL = java.util.regex.Pattern.compile(
+            "\\b([A-Za-z_][A-Za-z0-9_:<>]*)\\s*[*&]?\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*(?:=|;|\\))");
+
+    /**
+     * Names of the variables declared in {@code text} before {@code caret}. Used to offer what the
+     * body itself has introduced ahead of model and library names.
+     */
+    public static java.util.Set<String> declaredVariables(String text, int caret) {
+        java.util.Set<String> names = new java.util.LinkedHashSet<>();
+        if (text == null) return names;
+
+        String scope = text.substring(0, Math.max(0, Math.min(caret, text.length())));
+        boolean[] isCode = TextScanState.codeMask(scope);
+
+        java.util.regex.Matcher m = SMART_PTR_DECL.matcher(scope);
+        while (m.find()) {
+            if (isCode[m.start()]) names.add(m.group(1));
+        }
+        m = PLAIN_DECL.matcher(scope);
+        while (m.find()) {
+            if (!isCode[m.start()]) continue;
+            if (NOT_A_TYPE.contains(m.group(1))) continue;
+            names.add(m.group(2));
+        }
+        return names;
+    }
+
     /** Last group-1 match that sits in real code and is not one of {@code rejected}. */
     private static String lastMatch(java.util.regex.Matcher m, boolean[] isCode, java.util.Set<String> rejected) {
         String found = null;

@@ -166,7 +166,8 @@ public class CodeCompletionProvider {
             contextType = ExpressionParser.resolveContextTypeFromText(textBeforeCaret, dictionary, styledText.getText());
         }
 
-        List<String> matches = engine.findMatches(prefix, isMemberAccess, contextType, styledText.getText());
+        List<String> matches = engine.findMatches(prefix, isMemberAccess, contextType,
+                styledText.getText(), styledText.getCaretOffset());
         
         if (matches.isEmpty()) {
             popup.dismiss();

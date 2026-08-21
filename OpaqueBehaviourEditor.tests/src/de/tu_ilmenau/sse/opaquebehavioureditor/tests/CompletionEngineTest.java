@@ -73,4 +73,32 @@ public class CompletionEngineTest {
         assertEquals("size", m.get(1));
         assertTrue(m.indexOf("add") < m.indexOf("max_size"));
     }
+
+    @Test
+    public void outsideAMemberAccessVariablesComeFirstThenConstants() {
+        ModelDictionary d = new ModelDictionary();
+        for (String w : List.of("Book", "books", "BOOK_ATTRIBUTE_PICTURES")) d.addAutocompleteWord(w);
+        // no setLanguage: keeps snippets and language keywords out of this ordering test
+        CompletionEngine plain = new CompletionEngine(d);
+
+        String body = "std::shared_ptr<Book> bookMag = factory->createBook();\n"
+                    + "std::string bookname = \"Magritte\";\n"
+                    + "xbook->eSet(package->BOOK_ATTRIBUTE_PICTURES);\n"
+                    + "book";
+        List<String> m = plain.findMatches("book", false, null, body, body.length());
+
+        // variables, then the constant, then everything else alphabetically
+        // ("book" is picked up from the body text itself)
+        assertEquals(List.of("bookMag", "bookname", "BOOK_ATTRIBUTE_PICTURES", "Book", "book", "books"), m);
+    }
+
+    @Test
+    public void aVariableDeclaredAfterTheCaretIsNotOfferedAsOne() {
+        ModelDictionary d = new ModelDictionary();
+        CompletionEngine plain = new CompletionEngine(d);
+        String body = "book\nstd::shared_ptr<Book> bookMag = factory->createBook();\n";
+        // caret sits right after the typed prefix, before the declaration
+        List<String> m = plain.findMatches("book", false, null, body, 4);
+        assertTrue(m.isEmpty() || !m.get(0).equals("bookMag"));
+    }
 }

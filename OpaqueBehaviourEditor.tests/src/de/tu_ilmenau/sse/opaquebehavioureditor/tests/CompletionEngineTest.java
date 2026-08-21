@@ -87,9 +87,9 @@ public class CompletionEngineTest {
                     + "book";
         List<String> m = plain.findMatches("book", false, null, body, body.length());
 
-        // variables, then the constant, then everything else alphabetically
-        // ("book" is picked up from the body text itself)
-        assertEquals(List.of("bookMag", "bookname", "BOOK_ATTRIBUTE_PICTURES", "Book", "book", "books"), m);
+        // variables, then the constant, then everything else alphabetically;
+        // "book" itself is what was typed, so it is not proposed back
+        assertEquals(List.of("bookMag", "bookname", "BOOK_ATTRIBUTE_PICTURES", "Book", "books"), m);
     }
 
     @Test
@@ -100,5 +100,17 @@ public class CompletionEngineTest {
         // caret sits right after the typed prefix, before the declaration
         List<String> m = plain.findMatches("book", false, null, body, 4);
         assertTrue(m.isEmpty() || !m.get(0).equals("bookMag"));
+    }
+
+    @Test
+    public void thePrefixBeingTypedIsNotProposedBackToTheUser() {
+        ModelDictionary d = new ModelDictionary();
+        d.addAutocompleteWord("bookMa");   // even if such a word exists, it is already typed
+        CompletionEngine plain = new CompletionEngine(d);
+
+        String body = "std::shared_ptr<Book> bookMag = factory->createBook();\nbookMa";
+        List<String> m = plain.findMatches("bookMa", false, null, body, body.length());
+
+        assertEquals(List.of("bookMag"), m);
     }
 }

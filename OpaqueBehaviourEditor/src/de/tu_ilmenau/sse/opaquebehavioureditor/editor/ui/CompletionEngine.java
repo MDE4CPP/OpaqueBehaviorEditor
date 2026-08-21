@@ -138,6 +138,8 @@ public class CompletionEngine {
 
         for (String word : ranked) {
             if (matches.size() >= MAX_PROPOSALS) break;
+            // The word being typed is picked up by the document scan; completing to it is a no-op.
+            if (word.equals(prefix)) continue;
             if (!matches.contains(word)) matches.add(word);
         }
         return matches;

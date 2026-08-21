@@ -39,6 +39,7 @@ public class CodeEditorComposite extends Composite {
     
     private BiConsumer<String, String> changeListener;
     private Runnable saveAction;
+    private BodyEntry currentEntry;
 
     public CodeEditorComposite(Composite parent, int style, ModelDictionary dictionary, ISelectionProvider selectionProvider, boolean isUml) {
         super(parent, style);
@@ -149,11 +150,26 @@ public class CodeEditorComposite extends Composite {
     
     private void notifyChange() {
         if (changeListener != null) {
-            changeListener.accept(languageCombo.getText(), codeText.getText());
+            changeListener.accept(reportedLanguage(), codeText.getText());
         }
     }
 
+    /**
+     * The language to store back on the entry. The combo shows the canonical name, so reporting it
+     * verbatim would rewrite a body stored as "C++" to "CPP"; the stored spelling is kept unless
+     * the user actually switched to a different language.
+     */
+    private String reportedLanguage() {
+        String selected = languageCombo.getText();
+        if (currentEntry == null) return selected;
+        if (selected.isBlank()) return currentEntry.language;
+        boolean sameLanguage = LanguageMapping.getLanguageDef(selected)
+                == LanguageMapping.getLanguageDef(currentEntry.language);
+        return sameLanguage ? currentEntry.language : selected;
+    }
+
     public void loadEntry(BodyEntry entry) {
+        currentEntry = entry;
         if (entry == null) {
             suppressListener = true;
             try {
@@ -176,7 +192,7 @@ public class CodeEditorComposite extends Composite {
         suppressListener = true;
         try {
             sourceViewer.getDocument().set(entry.body);
-            languageCombo.setText(entry.language);
+            languageCombo.setText(LanguageMapping.canonicalName(entry.language));
         } finally {
             suppressListener = false;
         }

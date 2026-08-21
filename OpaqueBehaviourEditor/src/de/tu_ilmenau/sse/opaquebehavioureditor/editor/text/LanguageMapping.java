@@ -64,6 +64,15 @@ public final class LanguageMapping {
         };
     }
 
+    /**
+     * The registered name for a language however it is spelled in the model - "C++" and "cpp" both
+     * map to "CPP". A read-only Combo ignores setText for anything that is not one of its items,
+     * so a body stored as "C++" would otherwise leave the combo blank.
+     */
+    public static String canonicalName(String language) {
+        return getLanguageDef(language).name;
+    }
+
     /** Returns all registered language names (for combo box items). */
     public static String[] getAllLanguageNames() {
         return LANGUAGES.keySet().toArray(String[]::new);

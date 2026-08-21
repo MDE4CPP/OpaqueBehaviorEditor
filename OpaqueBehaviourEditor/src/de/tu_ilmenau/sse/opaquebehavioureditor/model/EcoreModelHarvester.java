@@ -84,7 +84,8 @@ public class EcoreModelHarvester extends AbstractModelHarvester {
                 for (EStructuralFeature p : c.getEAllStructuralFeatures()) {
                     String typeName = p.getEType() != null ? p.getEType().getName() : "Object";
                     registerPropertyMember(c.getName(), p.getName(), typeName, 
-                        p.isMany(), p.isOrdered(), p.isUnique(), p, dictionary);
+                        p.isMany(), p.isOrdered(), p.isUnique(),
+                        hasSetter(p.isMany(), p.isChangeable()), p, dictionary);
                 }
                 
                 // Register operations
@@ -119,9 +120,12 @@ public class EcoreModelHarvester extends AbstractModelHarvester {
                 String typeName = p.getEType() != null ? p.getEType().getName() : null;
                 String ownerName = p.getEContainingClass() != null ? p.getEContainingClass().getName() : null;
                 boolean containment = p instanceof org.eclipse.emf.ecore.EReference r && r.isContainment();
-                registerGlobalFeature(p.getName(), typeName, ownerName, containment, p, dictionary);
+                registerGlobalFeature(p.getName(), typeName, ownerName, containment,
+                        hasSetter(p.isMany(), p.isChangeable()), p, dictionary);
             }
         }
+
+        registerFactoryBuiltins(dictionary);
 
         // Register AQL/OCL built-in services on a synthetic type
         registerAqlServices(dictionary);

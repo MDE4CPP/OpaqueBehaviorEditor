@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -39,19 +40,31 @@ public class EcoreModelHarvesterTest {
         EClass publisher = f.createEClass(); publisher.setName("Publisher");
         pkg.getEClassifiers().addAll(java.util.List.of(book, picture, library, publisher));
 
-        addRef(library, "books", book, true);       // containment
-        addRef(book, "pictures", picture, true);    // containment
-        addRef(picture, "book", book, false);       // eOpposite of Book.pictures - NOT containment
-        addRef(publisher, "books", book, false);    // plain cross reference
-        addRef(book, "library", library, false);    // back reference
+        addAttr(book, "pages", 1);                  // single-valued  -> setPages
+        addAttr(book, "genres", -1);                // multi-valued   -> no setGenres
+
+        addRef(library, "books", book, true, -1);    // containment, [0..*]
+        addRef(book, "pictures", picture, true, -1); // containment, [0..*]
+        addRef(picture, "book", book, false, 1);     // eOpposite of Book.pictures - NOT containment
+        addRef(publisher, "books", book, false, -1); // plain cross reference
+        addRef(book, "library", library, false, 1);  // back reference
         return pkg;
     }
 
-    private static void addRef(EClass owner, String name, EClass type, boolean containment) {
+    private static void addAttr(EClass owner, String name, int upperBound) {
+        org.eclipse.emf.ecore.EAttribute at = EcoreFactory.eINSTANCE.createEAttribute();
+        at.setName(name);
+        at.setEType(org.eclipse.emf.ecore.EcorePackage.eINSTANCE.getEString());
+        at.setUpperBound(upperBound);
+        owner.getEStructuralFeatures().add(at);
+    }
+
+    private static void addRef(EClass owner, String name, EClass type, boolean containment, int upperBound) {
         EReference r = EcoreFactory.eINSTANCE.createEReference();
         r.setName(name);
         r.setEType(type);
         r.setContainment(containment);
+        r.setUpperBound(upperBound);
         owner.getEStructuralFeatures().add(r);
     }
 
@@ -95,5 +108,23 @@ public class EcoreModelHarvesterTest {
                 .get("createBook_as_books_in_LibraryModel"));
         // A model class must not expose the factory's methods.
         assertFalse(d.getAllTypeMembers("Book").containsKey("createBook_as_books_in_LibraryModel"));
+    }
+
+    @Test
+    public void settersOnlyForSingleValuedFeatures() {
+        // MDE4CPP generates no setter for * multiplicity - the collection is mutated via its getter.
+        Map<String, String> book = harvest().getAllTypeMembers("Book");
+        assertTrue(book.containsKey("setPages"));
+        assertTrue(book.containsKey("getGenres"));
+        assertFalse(book.containsKey("setGenres"));
+        assertTrue(book.containsKey("getPictures"));
+        assertFalse(book.containsKey("setPictures"));
+    }
+
+    @Test
+    public void factoryExposesItsBuiltInMembers() {
+        Map<String, String> f = harvest().getAllTypeMembers(AbstractModelHarvester.FACTORY_TYPE);
+        assertTrue(f.containsKey("create"));      // generic reflective create(...)
+        assertTrue(f.containsKey("eInstance"));
     }
 }

@@ -47,7 +47,8 @@ public class UmlModelHarvester extends AbstractModelHarvester {
                 for (org.eclipse.uml2.uml.Property p : classifier.getAllAttributes()) {
                     String typeName = p.getType() != null ? p.getType().getName() : "Object";
                     registerPropertyMember(className, p.getName(), typeName, 
-                        p.isMultivalued(), p.isOrdered(), p.isUnique(), p, dictionary);
+                        p.isMultivalued(), p.isOrdered(), p.isUnique(),
+                        hasSetter(p.isMultivalued(), !p.isReadOnly()), p, dictionary);
                 }
                 
                 // Register operations
@@ -104,10 +105,13 @@ public class UmlModelHarvester extends AbstractModelHarvester {
                     ownerName = ne.getName();
                 }
                 
-                registerGlobalFeature(p.getName(), typeName, ownerName, p.isComposite(), p, dictionary);
+                registerGlobalFeature(p.getName(), typeName, ownerName, p.isComposite(),
+                        hasSetter(p.isMultivalued(), !p.isReadOnly()), p, dictionary);
             }
         }
         
+        registerFactoryBuiltins(dictionary);
+
         // Register EMF standard methods so they appear in code completion
         registerEmfMethods(dictionary);
     }

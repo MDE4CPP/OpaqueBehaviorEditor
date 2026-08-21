@@ -1,6 +1,7 @@
 package de.tu_ilmenau.sse.opaquebehavioureditor.tests;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -92,5 +93,27 @@ public class ModelValidatorTest {
         List<TextRange> errors = validator.validateMemberAccess(code, cppLangDef);
         assertEquals(1, errors.size());
         assertEquals("Method 'invalidMethod' is not defined in class 'Library'", errors.get(0).message);
+    }
+
+    @Test
+    public void collectionMethodsFollowBag() {
+        dictionary.addTypeMember("Library", "getBooks", "Bag<Book>");
+        String code = "std::shared_ptr<Library> lib;\n"
+                    + "lib->getBooks()->push_back(b);\n"   // real Bag method
+                    + "lib->getBooks()->index_of(b);\n"    // real Bag method
+                    + "lib->getBooks()->remove(b);\n";     // not in Bag<T>
+        List<TextRange> errors = validator.validateMemberAccess(code, cppLangDef);
+        assertEquals(1, errors.size());
+        assertEquals("Method 'remove' is not defined in class 'Bag<Book>'", errors.get(0).message);
+    }
+
+    @Test
+    public void subsetIsRecognisedAsACollection() {
+        // Subset<> is the second most common collection in generated MDE4CPP code.
+        assertTrue(ModelValidator.isCollectionType("Subset<Book, Element>"));
+        assertTrue(ModelValidator.isCollectionType("SubsetUnion<Book, Element>"));
+        assertTrue(ModelValidator.isCollectionType("Union<Book>"));
+        assertTrue(ModelValidator.isCollectionType("Bag<Book>"));
+        assertFalse(ModelValidator.isCollectionType("Book"));
     }
 }

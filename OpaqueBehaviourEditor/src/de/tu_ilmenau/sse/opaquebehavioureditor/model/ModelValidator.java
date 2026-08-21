@@ -19,10 +19,25 @@ public class ModelValidator {
         "eAllContents", "eCrossReferences", "eResource", "eIsProxy", "eResolveProxy"
     };
 
+    /** The public API of MDE4CPP's Bag<T> (application/include/abstractDataTypes/Bag.hpp). */
     public static final String[] MDE4CPP_COLLECTION_METHODS = {
-        "add", "insert", "remove", "erase", "clear", "size", "empty", 
-        "front", "back", "begin", "end", "at"
+        "add", "at", "begin", "cbegin", "cend", "clear", "copy", "empty", "end", "erase",
+        "find", "front", "includes", "index_of", "insert", "max_size", "push_back", "size"
     };
+
+    /**
+     * MDE4CPP models every multi-valued feature as a Bag<T>; Union, Subset and SubsetUnion are
+     * the annotated variants and all derive from Bag, so they share its API.
+     */
+    private static final String[] COLLECTION_TYPES = { "Bag", "Union", "Subset", "SubsetUnion" };
+
+    public static boolean isCollectionType(String type) {
+        if (type == null) return false;
+        for (String c : COLLECTION_TYPES) {
+            if (type.startsWith(c + "<")) return true;
+        }
+        return false;
+    }
 
     private static final Pattern MEMBER_ACCESS_PATTERN = Pattern.compile("->[ \\t]*([A-Za-z0-9_]+)");
 
@@ -56,10 +71,8 @@ public class ModelValidator {
             String rawType = ExpressionParser.resolveContextTypeFromText(textBefore, dictionary, text);
             
             if (rawType != null) {
-                boolean isCollection = rawType.startsWith("Bag<") || rawType.startsWith("Set<") || 
-                                       rawType.startsWith("OrderedSet<") || rawType.startsWith("Sequence<") ||
-                                       rawType.startsWith("Union<") || rawType.startsWith("SubsetUnion<");
-                                       
+                boolean isCollection = isCollectionType(rawType);
+
                 if (rawType.startsWith("std::shared_ptr<")) {
                     rawType = rawType.substring(16, rawType.length() - 1);
                 }

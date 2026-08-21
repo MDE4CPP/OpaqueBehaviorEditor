@@ -84,16 +84,14 @@ public class EcoreModelHarvester extends AbstractModelHarvester {
                 // Register structural features
                 for (EStructuralFeature p : c.getEAllStructuralFeatures()) {
                     String typeName = p.getEType() != null ? p.getEType().getName() : "Object";
-                    registerPropertyMember(c.getName(), p.getName(), typeName, 
-                        p.isMany(), p.isOrdered(), p.isUnique(),
+                    registerPropertyMember(c.getName(), p.getName(), typeName, p.isMany(),
                         hasSetter(p.isMany(), p.isChangeable()), p, dictionary);
                 }
                 
                 // Register operations
                 for (EOperation op : c.getEAllOperations()) {
                     String typeName = op.getEType() != null ? op.getEType().getName() : "void";
-                    registerOperationMember(c.getName(), op.getName(), typeName, 
-                        op.isMany(), op.isOrdered(), op.isUnique(), op, dictionary);
+                    registerOperationMember(c.getName(), op.getName(), typeName, op.isMany(), op, dictionary);
                 }
                 
                 // Register Ecore inheritance (e.g. MyClass -> MySuperClass)
@@ -170,8 +168,7 @@ public class EcoreModelHarvester extends AbstractModelHarvester {
         for (EStructuralFeature feature : eClass.getEStructuralFeatures()) {
             String featureName = feature.getName();
             String featureType = computeCollectionType(
-                    feature.getEType() != null ? feature.getEType().getName() : "Object",
-                    feature.isMany(), feature.isOrdered(), feature.isUnique());
+                    feature.getEType() != null ? feature.getEType().getName() : "Object", feature.isMany());
             dictionary.addTypeMember(metaclassName, featureName, featureType);
             if (featureName != null && !featureName.isBlank()) {
                 String cap = featureName.substring(0, 1).toUpperCase() + featureName.substring(1);

@@ -20,6 +20,17 @@ public class UmlModelHarvester extends AbstractModelHarvester {
      * @param contextTypes A Set to populate with discovered type names.
      * @param dictionary   The dictionary to populate with autocomplete words and elements.
      */
+    /**
+     * UML4CPP emits a factory create method only for concrete, non-behaviour classes
+     * (isGeneratable in isGeneratableHelper.mtl rejects Behavior, and
+     * collectPackageClassifiersForFactoryFunctions rejects abstract classes). In UML a Behavior
+     * is a Class, so activities and opaque behaviours would otherwise get a create word of
+     * their own.
+     */
+    private static boolean isFactoryCreatable(org.eclipse.uml2.uml.Class c) {
+        return !(c instanceof org.eclipse.uml2.uml.Behavior) && !c.isAbstract();
+    }
+
     public static void harvest(OpaqueBehavior behavior, Set<String> contextTypes, ModelDictionary dictionary) {
         if (behavior.getModel() == null) {
             return;
@@ -35,7 +46,7 @@ public class UmlModelHarvester extends AbstractModelHarvester {
             }
             
             // 2. Handle UML Classes specifically
-            if (obj instanceof org.eclipse.uml2.uml.Class c) {
+            if (obj instanceof org.eclipse.uml2.uml.Class c && isFactoryCreatable(c)) {
                 registerClassCreate(c.getName(), c, dictionary);
             }
             
@@ -46,8 +57,7 @@ public class UmlModelHarvester extends AbstractModelHarvester {
                 // Register attributes (properties)
                 for (org.eclipse.uml2.uml.Property p : classifier.getAllAttributes()) {
                     String typeName = p.getType() != null ? p.getType().getName() : "Object";
-                    registerPropertyMember(className, p.getName(), typeName, 
-                        p.isMultivalued(), p.isOrdered(), p.isUnique(),
+                    registerPropertyMember(className, p.getName(), typeName, p.isMultivalued(),
                         hasSetter(p.isMultivalued(), !p.isReadOnly()), p, dictionary);
                 }
                 
@@ -56,17 +66,9 @@ public class UmlModelHarvester extends AbstractModelHarvester {
                     String typeName = op.getType() != null ? op.getType().getName() : "void";
                     
                     org.eclipse.uml2.uml.Parameter retParam = op.getReturnResult();
-                    boolean isMany = false;
-                    boolean isOrdered = false;
-                    boolean isUnique = false;
-                    if (retParam != null) {
-                        isMany = retParam.isMultivalued();
-                        isOrdered = retParam.isOrdered();
-                        isUnique = retParam.isUnique();
-                    }
-                    
-                    registerOperationMember(className, op.getName(), typeName, 
-                        isMany, isOrdered, isUnique, op, dictionary);
+                    boolean isMany = retParam != null && retParam.isMultivalued();
+
+                    registerOperationMember(className, op.getName(), typeName, isMany, op, dictionary);
                 }
                 
                 // Register UML model-level generalizations (e.g. Author -> NamedModelElement)

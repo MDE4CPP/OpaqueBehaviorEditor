@@ -34,10 +34,10 @@ public abstract class AbstractModelHarvester {
     }
 
     protected static void registerPropertyMember(String className, String pName, String typeName, 
-            boolean isMany, boolean isOrdered, boolean isUnique, boolean hasSetter, EObject p, ModelDictionary dictionary) {
+            boolean isMany, boolean hasSetter, EObject p, ModelDictionary dictionary) {
         if (className == null || className.isBlank() || pName == null || pName.isBlank()) return;
         
-        String retType = computeCollectionType(typeName, isMany, isOrdered, isUnique);
+        String retType = computeCollectionType(typeName, isMany);
         
         dictionary.addTypeMember(className, pName, retType);
         dictionary.addClassElement(className, pName, p);
@@ -60,10 +60,10 @@ public abstract class AbstractModelHarvester {
     }
     
     protected static void registerOperationMember(String className, String opName, String typeName, 
-            boolean isMany, boolean isOrdered, boolean isUnique, EObject op, ModelDictionary dictionary) {
+            boolean isMany, EObject op, ModelDictionary dictionary) {
         if (className == null || className.isBlank() || opName == null || opName.isBlank()) return;
         
-        String retType = computeCollectionType(typeName, isMany, isOrdered, isUnique);
+        String retType = computeCollectionType(typeName, isMany);
         dictionary.addTypeMember(className, opName, retType);
         dictionary.addClassElement(className, opName, op);
     }
@@ -99,13 +99,14 @@ public abstract class AbstractModelHarvester {
         }
     }
 
-    protected static String computeCollectionType(String typeName, boolean isMany, boolean isOrdered, boolean isUnique) {
+    /**
+     * MDE4CPP generates every multi-valued feature as a Bag<T>, whatever its ordered/unique flags
+     * say - the OCL collection kinds have no counterpart in the generated C++. Union, Subset and
+     * SubsetUnion appear only for features carrying the matching Ecore annotations, and all derive
+     * from Bag, so Bag is the right type to resolve members against either way.
+     */
+    protected static String computeCollectionType(String typeName, boolean isMany) {
         String baseType = typeName != null ? typeName : "Object";
-        if (!isMany) return baseType;
-        String col = "Bag";
-        if (isOrdered && isUnique) col = "OrderedSet";
-        else if (isOrdered && !isUnique) col = "Sequence";
-        else if (!isOrdered && isUnique) col = "Set";
-        return col + "<" + baseType + ">";
+        return isMany ? "Bag<" + baseType + ">" : baseType;
     }
 }

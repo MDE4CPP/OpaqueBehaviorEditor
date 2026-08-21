@@ -77,10 +77,8 @@ public class CompletionEngine {
             // If we can resolve the exact type of the object we're calling a method on,
             // restrict the allowed members exclusively to that type.
             if (contextType != null) {
-                // Special handling for MDE4CPP collections (Bag, Set, Sequence, etc.)
-                if (contextType.startsWith("Bag<") || contextType.startsWith("Set<") || 
-                    contextType.startsWith("OrderedSet<") || contextType.startsWith("Sequence<") ||
-                    contextType.startsWith("Union<") || contextType.startsWith("SubsetUnion<")) {
+                // Special handling for MDE4CPP collections (Bag, Union, Subset, SubsetUnion)
+                if (ModelValidator.isCollectionType(contextType)) {
                     allowedMembers.clear(); // Only suggest collection methods
                     for (String m : ModelValidator.MDE4CPP_COLLECTION_METHODS) allowedMembers.add(m);
                 } else if (dictionary.getTypeMembers().containsKey(contextType) || !dictionary.getAllTypeMembers(contextType).isEmpty()) {

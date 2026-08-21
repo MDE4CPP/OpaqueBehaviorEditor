@@ -138,4 +138,13 @@ public class EcoreModelHarvesterTest {
         // eStructuralFeatures is multi-valued, so there is no setter for it either.
         assertFalse(d.getAllTypeMembers("ecore::EClass").containsKey("setEStructuralFeatures"));
     }
+
+    @Test
+    public void multiValuedFeaturesAreTypedAsBag() {
+        // MDE4CPP has no Set/OrderedSet/Sequence - every multi-valued feature is a Bag<T>.
+        Map<String, String> book = harvest().getAllTypeMembers("Book");
+        assertEquals("Bag<Picture>", book.get("getPictures"));
+        assertEquals("Bag<EString>", book.get("getGenres"));
+        assertEquals("LibraryModel", book.get("getLibrary"));
+    }
 }

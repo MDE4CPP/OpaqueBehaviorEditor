@@ -63,6 +63,28 @@ public class ModelDictionary {
     }
 
     /**
+     * Returns the type that declares {@code member} for {@code className} - the class itself if it
+     * declares it, otherwise the nearest supertype that does, or {@code null} if no type in the
+     * hierarchy has it. Lets callers tell a class's own members apart from inherited and
+     * metamodel ones.
+     */
+    public String getDeclaringType(String className, String member) {
+        if (className == null || member == null) return null;
+        Set<String> visited = new HashSet<>();
+        java.util.Deque<String> queue = new java.util.ArrayDeque<>();
+        queue.add(className);
+        while (!queue.isEmpty()) {
+            String type = queue.poll();
+            if (!visited.add(type)) continue;
+            Map<String, String> members = typeMembers.get(type);
+            if (members != null && members.containsKey(member)) return type;
+            Set<String> supers = superTypes.get(type);
+            if (supers != null) queue.addAll(supers);
+        }
+        return null;
+    }
+
+    /**
      * Recursively collects type members from the given className and all its
      * supertypes. Uses a visited set to prevent infinite loops from cycles.
      */

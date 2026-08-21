@@ -1,6 +1,8 @@
 package de.tu_ilmenau.sse.opaquebehavioureditor.editor.ui;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -88,40 +90,78 @@ public class CompletionEngine {
             }
         }
 
+        // Collect every candidate first, then rank - truncating an alphabetical scan would cut
+        // the model's own accessors in favour of whatever sorts early.
+        Set<String> candidates = new LinkedHashSet<>();
+
         for (String word : completionWords) {
             if (word.toLowerCase().startsWith(lower)) {
                 if (allowedMembers != null && !allowedMembers.contains(word)) continue;
                 if (!isMemberAccess && word.startsWith("create")) continue;
-                if (!matches.contains(word)) {
-                    matches.add(word);
-                }
-                if (matches.size() >= MAX_PROPOSALS) break;
+                candidates.add(word);
             }
         }
-        
+
         // Also harvest words from the document dynamically
-        if (matches.size() < MAX_PROPOSALS) {
-            String[] docWords = documentText.split("[^a-zA-Z0-9_]+");
-            for (String dw : docWords) {
-                if (dw.length() >= AUTO_TRIGGER_LENGTH && dw.toLowerCase().startsWith(lower) && !matches.contains(dw)) {
-                    if (allowedMembers != null && !allowedMembers.contains(dw)) continue;
-                    if (!isMemberAccess && dw.startsWith("create")) continue;
-                    matches.add(dw);
-                    if (matches.size() >= MAX_PROPOSALS) break;
-                }
-            }
+        for (String dw : documentText.split("[^a-zA-Z0-9_]+")) {
+            if (dw.length() < AUTO_TRIGGER_LENGTH || !dw.toLowerCase().startsWith(lower)) continue;
+            if (allowedMembers != null && !allowedMembers.contains(dw)) continue;
+            if (!isMemberAccess && dw.startsWith("create")) continue;
+            candidates.add(dw);
         }
-        
-        // If it's a member access but we didn't find enough matches, inject the allowed members directly
-        if (isMemberAccess && matches.size() < MAX_PROPOSALS && allowedMembers != null) {
+
+        // Members that are known for the type but were never registered as a global word
+        if (isMemberAccess && allowedMembers != null) {
             for (String am : allowedMembers) {
-                if (am.toLowerCase().startsWith(lower) && !matches.contains(am)) {
-                    matches.add(am);
-                    if (matches.size() >= MAX_PROPOSALS) break;
-                }
+                if (am.toLowerCase().startsWith(lower)) candidates.add(am);
             }
         }
-        
+
+        List<String> ranked = new ArrayList<>(candidates);
+        ranked.sort(Comparator.comparingInt((String w) -> rank(w, isMemberAccess, contextType))
+                              .thenComparing(Comparator.naturalOrder()));
+
+        for (String word : ranked) {
+            if (matches.size() >= MAX_PROPOSALS) break;
+            if (!matches.contains(word)) matches.add(word);
+        }
         return matches;
     }
+
+    /** Collection methods that come up most in hand-written bodies, most used first. */
+    private static final List<String> COLLECTION_BY_USAGE =
+            List.of("add", "size", "at", "front", "empty", "push_back", "erase", "clear");
+
+    /**
+     * Orders proposals by how likely they are to be what the user wants: the type's own getters
+     * and setters first, then its other members, then inherited ones, and only then the reflective
+     * Ecore/OCL API that every object carries.
+     */
+    private int rank(String word, boolean isMemberAccess, String contextType) {
+        if (!isMemberAccess || contextType == null) return RANK_PLAIN;
+
+        if (ModelValidator.isCollectionType(contextType)) {
+            int used = COLLECTION_BY_USAGE.indexOf(word);
+            return used >= 0 ? used : COLLECTION_BY_USAGE.size();
+        }
+
+        String owner = dictionary.getDeclaringType(contextType, word);
+        if (owner == null) return RANK_PLAIN;
+
+        boolean accessor = word.startsWith("get") || word.startsWith("set");
+        // Metamodel and service types are qualified (ecore::EObject, aql::Services); a model
+        // class from the harvested .ecore or .uml is always a simple name.
+        boolean reflective = owner.contains("::");
+        if (reflective) return accessor ? RANK_REFLECTIVE_ACCESSOR : RANK_REFLECTIVE;
+        if (owner.equals(contextType)) return accessor ? RANK_OWN_ACCESSOR : RANK_OWN;
+        return accessor ? RANK_INHERITED_ACCESSOR : RANK_INHERITED;
+    }
+
+    private static final int RANK_OWN_ACCESSOR = 0;
+    private static final int RANK_INHERITED_ACCESSOR = 1;
+    private static final int RANK_OWN = 2;
+    private static final int RANK_INHERITED = 3;
+    private static final int RANK_REFLECTIVE_ACCESSOR = 4;
+    private static final int RANK_REFLECTIVE = 5;
+    private static final int RANK_PLAIN = 6;
 }

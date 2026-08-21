@@ -95,4 +95,20 @@ public class ExpressionParserTest {
         assertFalse("declarations in comments are not variables", vars.contains("commented"));
         assertFalse("`return lm;` is not a declaration", vars.contains("printLibrary"));
     }
+
+    @Test
+    public void testMultiDeclaratorStatements() {
+        String a = "std::shared_ptr<Book> a, b, c;";
+        assertEquals(java.util.Set.of("a", "b", "c"), ExpressionParser.declaredVariables(a, a.length()));
+
+        String b = "int x = 0, y = 1;";
+        assertEquals(java.util.Set.of("x", "y"), ExpressionParser.declaredVariables(b, b.length()));
+
+        // the comma inside the initializer's argument list is not a declarator
+        String c = "std::shared_ptr<Bag<Author>> bag = f->get(1, 2), other;";
+        assertEquals(java.util.Set.of("bag", "other"), ExpressionParser.declaredVariables(c, c.length()));
+
+        String call = "lm->printLibrary(a, b);";
+        assertTrue(ExpressionParser.declaredVariables(call, call.length()).isEmpty());
+    }
 }

@@ -245,4 +245,18 @@ public class EcoreModelHarvesterTest {
         assertTrue(d.getAutocompleteWords().contains("newAuthor"));
         assertEquals("Book", d.getContextVariableType("newAuthor"));
     }
+
+    @Test
+    public void bareFeatureNamesOnlyForLanguagesThatNavigateFeatures() {
+        // AQL and OCL write book.pages; the generated C++ only has getPages()
+        ModelDictionary cpp = new ModelDictionary();
+        EcoreModelHarvester.harvest(buildLibraryModel(), new HashSet<>(), cpp, "C++");
+        assertFalse(cpp.getAllTypeMembers("Book").containsKey("pictures"));
+        assertTrue(cpp.getAllTypeMembers("Book").containsKey("getPictures"));
+
+        ModelDictionary ocl = new ModelDictionary();
+        EcoreModelHarvester.harvest(buildLibraryModel(), new HashSet<>(), ocl, "OCL");
+        assertTrue(ocl.getAllTypeMembers("Book").containsKey("pictures"));
+        assertTrue(ocl.getAllTypeMembers("Book").containsKey("getPictures"));
+    }
 }

@@ -136,7 +136,7 @@ public class ExpressionParser {
             "std::(?:weak|shared|unique)_ptr<\\s*[A-Za-z0-9_:<>,\\s]+\\s*>\\s+([A-Za-z_][A-Za-z0-9_]*)\\b");
 
     private static final java.util.regex.Pattern PLAIN_DECL = java.util.regex.Pattern.compile(
-            "\\b([A-Za-z_][A-Za-z0-9_:<>]*)\\s*[*&]?\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*(?:=|;|\\))");
+            "\\b([A-Za-z_][A-Za-z0-9_:<>]*)\\s*[*&]?\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*(?:=|;|\\)|,)");
 
     /**
      * Names of the variables declared in {@code text} before {@code caret}. Used to offer what the
@@ -151,15 +151,45 @@ public class ExpressionParser {
 
         java.util.regex.Matcher m = SMART_PTR_DECL.matcher(scope);
         while (m.find()) {
-            if (isCode[m.start()]) names.add(m.group(1));
+            if (!isCode[m.start()]) continue;
+            names.add(m.group(1));
+            addFurtherDeclarators(scope, m.end(), names);
         }
         m = PLAIN_DECL.matcher(scope);
         while (m.find()) {
             if (!isCode[m.start()]) continue;
             if (NOT_A_TYPE.contains(m.group(1))) continue;
             names.add(m.group(2));
+            addFurtherDeclarators(scope, m.end(2), names);
         }
         return names;
+    }
+
+    /**
+     * The remaining names of a multi-declarator statement: the b and c of {@code Book a, b, c;},
+     * and the y of {@code int x = 0, y = 1;}. Walks to the end of the statement, taking the
+     * identifier after every top-level comma and stepping over any initializer in between.
+     */
+    private static void addFurtherDeclarators(String text, int from, java.util.Set<String> names) {
+        int depth = 0;
+        for (int i = from; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '(' || c == '[' || c == '{') depth++;
+            else if (c == ')' || c == ']' || c == '}') {
+                if (depth == 0) return;
+                depth--;
+            } else if (c == ';') {
+                return;
+            } else if (c == ',' && depth == 0) {
+                int j = i + 1;
+                while (j < text.length() && (Character.isWhitespace(text.charAt(j))
+                        || text.charAt(j) == '*' || text.charAt(j) == '&')) j++;
+                int start = j;
+                while (j < text.length() && Character.isJavaIdentifierPart(text.charAt(j))) j++;
+                if (j > start) names.add(text.substring(start, j));
+                i = j - 1;
+            }
+        }
     }
 
     /** Last group-1 match that sits in real code and is not one of {@code rejected}. */

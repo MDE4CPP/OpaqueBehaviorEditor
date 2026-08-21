@@ -110,6 +110,16 @@ public class EcoreModelHarvester extends AbstractModelHarvester {
     }
 
     public static void harvest(EPackage ePackage, Set<String> contextTypes, ModelDictionary dictionary) {
+        harvest(ePackage, contextTypes, dictionary, "C++");
+    }
+
+    /**
+     * @param language the language of the body being edited; it decides whether features can be
+     *                 navigated by their bare name or only through their accessor.
+     */
+    public static void harvest(EPackage ePackage, Set<String> contextTypes, ModelDictionary dictionary,
+            String language) {
+        boolean bareNames = allowsBareFeatureNames(language);
         if (ePackage == null) {
             return;
         }
@@ -144,7 +154,7 @@ public class EcoreModelHarvester extends AbstractModelHarvester {
                     String typeName = p.getEType() != null ? p.getEType().getName() : "Object";
                     registerPropertyMember(c.getName(), p.getName(), typeName, p.isMany(),
                         getterName(p), hasSetter(p.isMany(), p.isChangeable()) && !hasCodegenKey(p, "noSetter"),
-                        !hasCodegenKey(p, "noGetter"), p, dictionary);
+                        !hasCodegenKey(p, "noGetter"), bareNames, p, dictionary);
                 }
                 
                 // Register operations

@@ -3,6 +3,8 @@ package de.tu_ilmenau.sse.opaquebehavioureditor.model;
 import java.util.Set;
 import org.eclipse.emf.ecore.EObject;
 
+import de.tu_ilmenau.sse.opaquebehavioureditor.editor.text.LanguageMapping;
+
 /**
  * Shared base class containing common logic for harvesting UML/Ecore models.
  */
@@ -48,15 +50,26 @@ public abstract class AbstractModelHarvester {
         }
     }
 
+    /**
+     * Whether a feature can be reached by its bare name. AQL and OCL navigate features directly
+     * (book.pages); the generated C++ only ever exposes the accessor.
+     */
+    protected static boolean allowsBareFeatureNames(String language) {
+        if (language == null) return false;
+        return !LanguageMapping.LANG_CPP.equals(LanguageMapping.getLanguageDef(language).name);
+    }
+
     protected static void registerPropertyMember(String className, String pName, String typeName, 
             boolean isMany, String getterName, boolean hasSetter, boolean hasGetter,
-            EObject p, ModelDictionary dictionary) {
+            boolean bareName, EObject p, ModelDictionary dictionary) {
         if (className == null || className.isBlank() || pName == null || pName.isBlank()) return;
         
         String retType = computeCollectionType(typeName, isMany);
         
-        dictionary.addTypeMember(className, pName, retType);
-        dictionary.addClassElement(className, pName, p);
+        if (bareName) {
+            dictionary.addTypeMember(className, pName, retType);
+            dictionary.addClassElement(className, pName, p);
+        }
         if (hasGetter) {
             dictionary.addTypeMember(className, getterName, retType);
             dictionary.addClassElement(className, getterName, p);

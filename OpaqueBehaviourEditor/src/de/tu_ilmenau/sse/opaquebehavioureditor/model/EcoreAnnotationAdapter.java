@@ -98,6 +98,14 @@ public class EcoreAnnotationAdapter implements IModelAdapter {
 
     @Override
     public void updateMarkers(List<String> bodies, List<String> languages, ModelDictionary dictionary) {
-        // No-op for Ecore annotations
+        if (emfElement == null) return;
+        // mark on the annotated element itself, so the Problems entry points at the operation
+        // or class the body belongs to rather than at the annotation's map entry
+        EObject owner = emfElement;
+        while (owner.eContainer() != null && !(owner instanceof org.eclipse.emf.ecore.ENamedElement)) {
+            owner = owner.eContainer();
+        }
+        de.tu_ilmenau.sse.opaquebehavioureditor.markers.MarkerManager
+                .updateMarkers(owner, bodies, languages, dictionary);
     }
 }

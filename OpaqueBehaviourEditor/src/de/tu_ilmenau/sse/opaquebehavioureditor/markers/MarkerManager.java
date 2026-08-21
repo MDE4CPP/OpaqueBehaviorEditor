@@ -11,7 +11,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.EValidator;
-import org.eclipse.uml2.uml.OpaqueBehavior;
+import org.eclipse.emf.ecore.EObject;
 
 import de.tu_ilmenau.sse.opaquebehavioureditor.editor.text.LanguageDef;
 import de.tu_ilmenau.sse.opaquebehavioureditor.editor.text.LanguageMapping;
@@ -24,13 +24,18 @@ public class MarkerManager {
 
     public static final String MARKER_ID = "de.tu_ilmenau.sse.opaquebehavioureditor.problem";
 
-    public static void updateMarkers(OpaqueBehavior behavior, List<String> bodies, List<String> languages, ModelDictionary dictionary) {
-        IFile file = getWorkspaceFile(behavior);
+    /**
+     * @param element the UML behaviour or the Ecore element owning the annotation being edited;
+     *                markers are attached to the file that holds it.
+     */
+    public static void updateMarkers(EObject element, List<String> bodies, List<String> languages, ModelDictionary dictionary) {
+        if (element == null) return;
+        IFile file = getWorkspaceFile(element);
         if (file == null) return;
 
         try {
-            // Delete existing markers for this specific behavior
-            String behaviorURI = EcoreUtil.getURI(behavior).toString();
+            // Delete existing markers for this specific element
+            String behaviorURI = EcoreUtil.getURI(element).toString();
             IMarker[] existingMarkers = file.findMarkers(MARKER_ID, true, IResource.DEPTH_ZERO);
             for (IMarker m : existingMarkers) {
                 if (behaviorURI.equals(m.getAttribute(EValidator.URI_ATTRIBUTE))) {
@@ -47,6 +52,7 @@ public class MarkerManager {
                 
                 List<TextRange> errors = validator.validateMemberAccess(body, langDef);
                 errors.addAll(validator.validateStatements(body, langDef));
+                errors.addAll(validator.validateSyntax(body, langDef));
                 for (TextRange error : errors) {
                     createMarker(file, behaviorURI, body, error, lang);
                 }
@@ -59,21 +65,29 @@ public class MarkerManager {
     private static void createMarker(IFile file, String behaviorURI, String body, TextRange error, String lang) throws CoreException {
         IMarker marker = file.createMarker(MARKER_ID);
         marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
-        
-        // Extract the problematic text for the error message
-        String errorText = body.substring(error.offset, error.offset + error.length);
-        marker.setAttribute(IMarker.MESSAGE, "Resolution Error: Unrecognized member '" + errorText + "'");
-        
-        // Character bounds for the problem view highlight
-        marker.setAttribute(IMarker.CHAR_START, error.offset);
-        marker.setAttribute(IMarker.CHAR_END, error.offset + error.length);
-        
-        // Link to the EMF element so Papyrus can navigate to it
+
+        // The validator already phrased the problem; the body offset means nothing to a reader of
+        // the Problems view, so say where in the body it is instead.
+        int line = lineOf(body, error.offset);
+        marker.setAttribute(IMarker.MESSAGE, error.message + "  (" + lang + " body, line " + line + ")");
+        marker.setAttribute(IMarker.LOCATION, "line " + line);
+        marker.setAttribute(IMarker.LINE_NUMBER, line);
+
+        // Link to the EMF element so the model editor can navigate to it
         marker.setAttribute(EValidator.URI_ATTRIBUTE, behaviorURI);
     }
 
-    private static IFile getWorkspaceFile(OpaqueBehavior behavior) {
-        Resource eResource = behavior.eResource();
+    /** 1-based line of {@code offset} within the body. */
+    private static int lineOf(String body, int offset) {
+        int line = 1;
+        for (int i = 0; i < offset && i < body.length(); i++) {
+            if (body.charAt(i) == '\n') line++;
+        }
+        return line;
+    }
+
+    private static IFile getWorkspaceFile(EObject element) {
+        Resource eResource = element.eResource();
         if (eResource != null && eResource.getURI().isPlatformResource()) {
             String path = eResource.getURI().toPlatformString(true);
             return ResourcesPlugin.getWorkspace().getRoot().getFile(new Path(path));

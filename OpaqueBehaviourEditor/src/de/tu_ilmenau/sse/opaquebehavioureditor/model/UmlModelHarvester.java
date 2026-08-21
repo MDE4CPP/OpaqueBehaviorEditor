@@ -53,6 +53,13 @@ public class UmlModelHarvester extends AbstractModelHarvester {
     }
 
     public static void harvest(OpaqueBehavior behavior, Set<String> contextTypes, ModelDictionary dictionary) {
+        String language = behavior.getLanguages().isEmpty() ? "C++" : behavior.getLanguages().get(0);
+        harvest(behavior, contextTypes, dictionary, language);
+    }
+
+    public static void harvest(OpaqueBehavior behavior, Set<String> contextTypes, ModelDictionary dictionary,
+            String language) {
+        boolean bareNames = allowsBareFeatureNames(language);
         if (behavior.getModel() == null) {
             return;
         }
@@ -80,7 +87,7 @@ public class UmlModelHarvester extends AbstractModelHarvester {
                     String typeName = p.getType() != null ? p.getType().getName() : "Object";
                     registerPropertyMember(className, p.getName(), typeName, p.isMultivalued(),
                         defaultGetterName(p.getName()),
-                        hasSetter(p.isMultivalued(), !p.isReadOnly()), true, p, dictionary);
+                        hasSetter(p.isMultivalued(), !p.isReadOnly()), true, bareNames, p, dictionary);
                 }
                 
                 // Register operations

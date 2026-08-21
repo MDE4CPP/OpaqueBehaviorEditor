@@ -48,10 +48,15 @@ public class ExpressionParserTest {
     }
 
     @Test
-    public void testFactoryResolvesToTheSyntheticFactoryType() {
-        // `factory` is injected by the editor, it is never declared in the body text.
+    public void testContextVariablesResolveWithoutADeclaration() {
+        // `factory` and operation parameters are injected by the editor, never declared in the body
+        dictionary.addContextVariable("factory", "factory");
+        dictionary.addContextVariable("newAuthor", "Author");
+
         String code = "factory->";
         assertEquals("factory", ExpressionParser.resolveContextTypeFromText(code, dictionary, code));
+        String param = "newAuthor->";
+        assertEquals("Author", ExpressionParser.resolveContextTypeFromText(param, dictionary, param));
     }
 
     @Test

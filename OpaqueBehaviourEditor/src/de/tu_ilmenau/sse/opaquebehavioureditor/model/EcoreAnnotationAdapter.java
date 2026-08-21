@@ -56,6 +56,8 @@ public class EcoreAnnotationAdapter implements IModelAdapter {
             if (root instanceof org.eclipse.emf.ecore.EPackage) {
                 EcoreModelHarvester.harvest((org.eclipse.emf.ecore.EPackage) root, contextTypes, dictionary);
             }
+            // parameters of the operation this annotation body implements
+            EcoreModelHarvester.harvestBodyScope(emfElement, dictionary);
         }
     }
 

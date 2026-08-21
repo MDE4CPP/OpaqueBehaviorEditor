@@ -9,6 +9,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.emf.ecore.EModelElement;
 import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.EcorePackage;
 
@@ -58,6 +59,56 @@ public class EcoreModelHarvester extends AbstractModelHarvester {
         {"eUnset", "void"},
     };
 
+    /** Source of the annotation MDE4CPP evaluates during generation (keywords.mtl, sourceNameCodeGen). */
+    private static final String CODEGEN_SOURCE = "http://tu-ilmenau.de/see/codegen";
+
+    private static boolean hasCodegenKey(EModelElement element, String key) {
+        if (element == null) return false;
+        org.eclipse.emf.ecore.EAnnotation a = element.getEAnnotation(CODEGEN_SOURCE);
+        return a != null && a.getDetails().containsKey(key);
+    }
+
+    private static String codegenValue(EModelElement element, String key) {
+        org.eclipse.emf.ecore.EAnnotation a = element.getEAnnotation(CODEGEN_SOURCE);
+        return a == null ? null : a.getDetails().get(key);
+    }
+
+    /**
+     * Mirrors doNotGenerateEClassifier / doNotGenerateEPackage: the key excludes the element from
+     * generation, and a package carrying it excludes everything inside it.
+     */
+    private static boolean doNotGenerate(EModelElement element) {
+        if (hasCodegenKey(element, "doNotGenerate")) return true;
+        for (EObject c = element.eContainer(); c != null; c = c.eContainer()) {
+            if (c instanceof EPackage pkg && hasCodegenKey(pkg, "doNotGenerate")) return true;
+        }
+        return false;
+    }
+
+    /** The generated getter name, honouring the getterName override (generateAttribute.mtl). */
+    private static String getterName(EStructuralFeature feature) {
+        String override = codegenValue(feature, "getterName");
+        if (override != null && !override.isBlank()) return override;
+        String n = feature.getName();
+        return "get" + n.substring(0, 1).toUpperCase() + n.substring(1);
+    }
+
+    /**
+     * Registers the parameters of the operation whose body is being edited. They are in scope for
+     * the body but declared nowhere in it, so without this they are neither proposed nor typed.
+     */
+    public static void harvestBodyScope(EObject bodyElement, ModelDictionary dictionary) {
+        for (EObject c = bodyElement; c != null; c = c.eContainer()) {
+            if (!(c instanceof EOperation op)) continue;
+            for (org.eclipse.emf.ecore.EParameter param : op.getEParameters()) {
+                if (doNotGenerate(param)) continue;
+                String typeName = param.getEType() != null ? param.getEType().getName() : "Object";
+                registerParameter(param.getName(), typeName, param.isMany(), param, dictionary);
+            }
+            return;
+        }
+    }
+
     public static void harvest(EPackage ePackage, Set<String> contextTypes, ModelDictionary dictionary) {
         if (ePackage == null) {
             return;
@@ -72,6 +123,12 @@ public class EcoreModelHarvester extends AbstractModelHarvester {
         while (it.hasNext()) {
             EObject obj = it.next();
             
+            // Elements excluded from generation have no counterpart in the generated C++
+            if (obj instanceof EModelElement e && doNotGenerate(e)) {
+                if (obj instanceof EClassifier) it.prune();
+                continue;
+            }
+
             // 1. Handle general Ecore Types
             if (obj instanceof EClassifier t) {
                 registerType(t.getName(), t, contextTypes, dictionary);
@@ -83,13 +140,16 @@ public class EcoreModelHarvester extends AbstractModelHarvester {
                 
                 // Register structural features
                 for (EStructuralFeature p : c.getEAllStructuralFeatures()) {
+                    if (doNotGenerate(p)) continue;
                     String typeName = p.getEType() != null ? p.getEType().getName() : "Object";
                     registerPropertyMember(c.getName(), p.getName(), typeName, p.isMany(),
-                        hasSetter(p.isMany(), p.isChangeable()), p, dictionary);
+                        getterName(p), hasSetter(p.isMany(), p.isChangeable()) && !hasCodegenKey(p, "noSetter"),
+                        !hasCodegenKey(p, "noGetter"), p, dictionary);
                 }
                 
                 // Register operations
                 for (EOperation op : c.getEAllOperations()) {
+                    if (doNotGenerate(op)) continue;
                     String typeName = op.getEType() != null ? op.getEType().getName() : "void";
                     registerOperationMember(c.getName(), op.getName(), typeName, op.isMany(), op, dictionary);
                 }
@@ -116,8 +176,9 @@ public class EcoreModelHarvester extends AbstractModelHarvester {
                 String typeName = p.getEType() != null ? p.getEType().getName() : null;
                 String ownerName = p.getEContainingClass() != null ? p.getEContainingClass().getName() : null;
                 boolean containment = p instanceof org.eclipse.emf.ecore.EReference r && r.isContainment();
-                registerGlobalFeature(p.getName(), typeName, ownerName, containment,
-                        hasSetter(p.isMany(), p.isChangeable()), p, dictionary);
+                registerGlobalFeature(p.getName(), typeName, ownerName, containment, getterName(p),
+                        hasSetter(p.isMany(), p.isChangeable()) && !hasCodegenKey(p, "noSetter"),
+                        !hasCodegenKey(p, "noGetter"), p, dictionary);
             }
         }
 

@@ -46,6 +46,7 @@ public class UmlOpaqueBehaviorAdapter implements IModelAdapter {
         if (behavior.getModel() != null) {
             UmlModelHarvester.harvest(behavior, contextTypes, dictionary);
         }
+        UmlModelHarvester.harvestBodyScope(behavior, dictionary);
     }
 
     @Override

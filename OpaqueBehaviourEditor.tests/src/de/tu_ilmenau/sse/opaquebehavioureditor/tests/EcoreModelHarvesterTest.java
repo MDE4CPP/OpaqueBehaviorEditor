@@ -147,4 +147,102 @@ public class EcoreModelHarvesterTest {
         assertEquals("Bag<EString>", book.get("getGenres"));
         assertEquals("LibraryModel", book.get("getLibrary"));
     }
+
+    private static final String CODEGEN = "http://tu-ilmenau.de/see/codegen";
+
+    private static void annotate(org.eclipse.emf.ecore.EModelElement e, String key, String value) {
+        org.eclipse.emf.ecore.EAnnotation a = e.getEAnnotation(CODEGEN);
+        if (a == null) {
+            a = EcoreFactory.eINSTANCE.createEAnnotation();
+            a.setSource(CODEGEN);
+            e.getEAnnotations().add(a);
+        }
+        a.getDetails().put(key, value);
+    }
+
+    /** Book with the MDE4CPP codegen annotations that change what is generated. */
+    private static ModelDictionary harvestAnnotated() {
+        EcoreFactory f = EcoreFactory.eINSTANCE;
+        EPackage pkg = f.createEPackage();
+        pkg.setName("annotated");
+
+        EClass book = f.createEClass();   book.setName("Book");
+        EClass hidden = f.createEClass(); hidden.setName("HiddenClass");
+        annotate(hidden, "doNotGenerate", "");
+        pkg.getEClassifiers().addAll(java.util.List.of(book, hidden));
+
+        addAttr(book, "pages", 1);
+        addAttr(book, "isbn", 1);
+        annotate(book.getEStructuralFeatures().get(1), "getterName", "getBook_Isbn");
+        addAttr(book, "secret", 1);
+        annotate(book.getEStructuralFeatures().get(2), "doNotGenerate", "");
+        addAttr(book, "derived", 1);
+        annotate(book.getEStructuralFeatures().get(3), "noGetter", "");
+        addAttr(book, "readonly", 1);
+        annotate(book.getEStructuralFeatures().get(4), "noSetter", "");
+
+        ModelDictionary d = new ModelDictionary();
+        EcoreModelHarvester.harvest(pkg, new HashSet<>(), d);
+        return d;
+    }
+
+    @Test
+    public void doNotGenerateElementsAreNotOffered() {
+        ModelDictionary d = harvestAnnotated();
+        assertFalse(d.getAutocompleteWords().contains("HiddenClass"));
+        assertFalse(d.getAutocompleteWords().contains("createHiddenClass"));
+        assertFalse(d.getAllTypeMembers("Book").containsKey("getSecret"));
+        assertFalse(d.getAllTypeMembers("Book").containsKey("setSecret"));
+    }
+
+    @Test
+    public void getterNameOverrideIsHonoured() {
+        Map<String, String> book = harvestAnnotated().getAllTypeMembers("Book");
+        assertTrue(book.containsKey("getBook_Isbn"));
+        assertFalse(book.containsKey("getIsbn"));
+        // the setter keeps the plain name, only the getter is overridden
+        assertTrue(book.containsKey("setIsbn"));
+    }
+
+    @Test
+    public void noGetterAndNoSetterAreHonoured() {
+        Map<String, String> book = harvestAnnotated().getAllTypeMembers("Book");
+        assertFalse(book.containsKey("getDerived"));
+        assertTrue(book.containsKey("setDerived"));
+        assertTrue(book.containsKey("getReadonly"));
+        assertFalse(book.containsKey("setReadonly"));
+        assertTrue(book.containsKey("getPages"));   // unannotated feature is unaffected
+        assertTrue(book.containsKey("setPages"));
+    }
+
+    @Test
+    public void operationParametersAreInScopeForTheirBody() {
+        EcoreFactory f = EcoreFactory.eINSTANCE;
+        EPackage pkg = f.createEPackage();
+        pkg.setName("scoped");
+        EClass book = f.createEClass(); book.setName("Book");
+        pkg.getEClassifiers().add(book);
+
+        org.eclipse.emf.ecore.EOperation op = f.createEOperation();
+        op.setName("addAuthor");
+        org.eclipse.emf.ecore.EParameter param = f.createEParameter();
+        param.setName("newAuthor");
+        param.setEType(book);
+        op.getEParameters().add(param);
+        book.getEOperations().add(op);
+
+        org.eclipse.emf.ecore.EAnnotation body = f.createEAnnotation();
+        body.setSource(CODEGEN);
+        body.getDetails().put("body", "newAuthor->getName();");
+        op.getEAnnotations().add(body);
+
+        ModelDictionary d = new ModelDictionary();
+        EcoreModelHarvester.harvest(pkg, new HashSet<>(), d);
+        assertFalse("not in scope before the body scope is harvested",
+                d.getAutocompleteWords().contains("newAuthor"));
+
+        EcoreModelHarvester.harvestBodyScope(body, d);
+        assertTrue(d.getAutocompleteWords().contains("newAuthor"));
+        assertEquals("Book", d.getContextVariableType("newAuthor"));
+    }
 }

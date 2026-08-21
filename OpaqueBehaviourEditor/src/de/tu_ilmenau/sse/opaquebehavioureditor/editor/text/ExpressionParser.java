@@ -56,8 +56,12 @@ public class ExpressionParser {
             }
             
             if (i == 0) {
-                // Base variable
-                currentType = resolveVariableType(part, fullText, caret);
+                // Base variable: something the editor injects (factory, operation parameters)
+                // first, then a declaration in the body itself.
+                currentType = dictionary != null ? dictionary.getContextVariableType(part) : null;
+                if (currentType == null) {
+                    currentType = resolveVariableType(part, fullText, caret);
+                }
             } else {
                 // Method or property on currentType (including inherited members)
                 if (currentType != null) {
@@ -97,11 +101,6 @@ public class ExpressionParser {
      */
     public static String resolveVariableType(String variableName, String fullText, int caret) {
         if (variableName == null || variableName.isBlank()) return null;
-
-        // The generated model factory is injected by the editor, not declared in the body.
-        if (de.tu_ilmenau.sse.opaquebehavioureditor.model.AbstractModelHarvester.FACTORY_TYPE.equals(variableName)) {
-            return variableName;
-        }
         if (fullText == null) return null;
 
         String scope = fullText.substring(0, Math.max(0, Math.min(caret, fullText.length())));

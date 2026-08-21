@@ -19,6 +19,7 @@ public class ModelDictionary {
     private final Map<String, EObject> globalElements = new HashMap<>();
     private final Map<String, Map<String, String>> typeMembers = new HashMap<>();
     private final Map<String, Set<String>> superTypes = new HashMap<>();
+    private final Map<String, String> contextVariables = new HashMap<>();
 
     public java.util.Set<String> getAutocompleteWords() { return Collections.unmodifiableSet(autocompleteWords); }
     public Map<String, Map<String, EObject>> getClassElements() { return Collections.unmodifiableMap(classElements); }
@@ -35,6 +36,20 @@ public class ModelDictionary {
 
     public void addTypeMember(String className, String memberName, String returnType) {
         typeMembers.computeIfAbsent(className, k -> new HashMap<>()).put(memberName, returnType);
+    }
+
+    /**
+     * Registers a name that is in scope for the body without being declared in it - the injected
+     * factory, or the parameters of the operation the body implements.
+     */
+    public void addContextVariable(String name, String typeName) {
+        if (name != null && !name.isBlank() && typeName != null && !typeName.isBlank()) {
+            contextVariables.put(name, typeName);
+        }
+    }
+
+    public String getContextVariableType(String name) {
+        return name == null ? null : contextVariables.get(name);
     }
 
     public void addTypeMemberMap(String className) {

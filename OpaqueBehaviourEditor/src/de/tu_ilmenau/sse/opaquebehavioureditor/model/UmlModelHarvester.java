@@ -1,5 +1,6 @@
 package de.tu_ilmenau.sse.opaquebehavioureditor.model;
 
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.emf.common.util.TreeIterator;
@@ -31,6 +32,26 @@ public class UmlModelHarvester extends AbstractModelHarvester {
         return !(c instanceof org.eclipse.uml2.uml.Behavior) && !c.isAbstract();
     }
 
+    /**
+     * Registers the parameters in scope for this behaviour's body - its own, and those of the
+     * operation it is the method of. They are never declared in the body itself.
+     */
+    public static void harvestBodyScope(OpaqueBehavior behavior, ModelDictionary dictionary) {
+        registerParameters(behavior.getOwnedParameters(), dictionary);
+        if (behavior.getSpecification() != null) {
+            registerParameters(behavior.getSpecification().getOwnedParameters(), dictionary);
+        }
+    }
+
+    private static void registerParameters(List<org.eclipse.uml2.uml.Parameter> parameters,
+            ModelDictionary dictionary) {
+        for (org.eclipse.uml2.uml.Parameter param : parameters) {
+            if (param.getDirection() == org.eclipse.uml2.uml.ParameterDirectionKind.RETURN_LITERAL) continue;
+            String typeName = param.getType() != null ? param.getType().getName() : "Object";
+            registerParameter(param.getName(), typeName, param.isMultivalued(), param, dictionary);
+        }
+    }
+
     public static void harvest(OpaqueBehavior behavior, Set<String> contextTypes, ModelDictionary dictionary) {
         if (behavior.getModel() == null) {
             return;
@@ -58,7 +79,8 @@ public class UmlModelHarvester extends AbstractModelHarvester {
                 for (org.eclipse.uml2.uml.Property p : classifier.getAllAttributes()) {
                     String typeName = p.getType() != null ? p.getType().getName() : "Object";
                     registerPropertyMember(className, p.getName(), typeName, p.isMultivalued(),
-                        hasSetter(p.isMultivalued(), !p.isReadOnly()), p, dictionary);
+                        defaultGetterName(p.getName()),
+                        hasSetter(p.isMultivalued(), !p.isReadOnly()), true, p, dictionary);
                 }
                 
                 // Register operations
@@ -108,7 +130,8 @@ public class UmlModelHarvester extends AbstractModelHarvester {
                 }
                 
                 registerGlobalFeature(p.getName(), typeName, ownerName, p.isComposite(),
-                        hasSetter(p.isMultivalued(), !p.isReadOnly()), p, dictionary);
+                        defaultGetterName(p.getName()),
+                        hasSetter(p.isMultivalued(), !p.isReadOnly()), true, p, dictionary);
             }
         }
         

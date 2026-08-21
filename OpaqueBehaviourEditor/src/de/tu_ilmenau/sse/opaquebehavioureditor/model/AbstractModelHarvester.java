@@ -23,6 +23,21 @@ public abstract class AbstractModelHarvester {
     protected static void registerFactoryBuiltins(ModelDictionary dictionary) {
         dictionary.addTypeMember(FACTORY_TYPE, "create", "std::shared_ptr<ecore::EObject>");
         dictionary.addTypeMember(FACTORY_TYPE, "eInstance", FACTORY_TYPE);
+        dictionary.addContextVariable(FACTORY_TYPE, FACTORY_TYPE);
+    }
+
+    /** The getter MDE4CPP generates for a feature unless the model overrides its name. */
+    protected static String defaultGetterName(String pName) {
+        return "get" + pName.substring(0, 1).toUpperCase() + pName.substring(1);
+    }
+
+    /** A parameter of the operation the body implements: in scope, but never declared in it. */
+    protected static void registerParameter(String name, String typeName, boolean isMany,
+            EObject param, ModelDictionary dictionary) {
+        if (name == null || name.isBlank()) return;
+        dictionary.addAutocompleteWord(name);
+        dictionary.addGlobalElement(name, param);
+        dictionary.addContextVariable(name, computeCollectionType(typeName, isMany));
     }
 
     protected static void registerClassCreate(String className, EObject obj, ModelDictionary dictionary) {
@@ -34,19 +49,22 @@ public abstract class AbstractModelHarvester {
     }
 
     protected static void registerPropertyMember(String className, String pName, String typeName, 
-            boolean isMany, boolean hasSetter, EObject p, ModelDictionary dictionary) {
+            boolean isMany, String getterName, boolean hasSetter, boolean hasGetter,
+            EObject p, ModelDictionary dictionary) {
         if (className == null || className.isBlank() || pName == null || pName.isBlank()) return;
         
         String retType = computeCollectionType(typeName, isMany);
         
         dictionary.addTypeMember(className, pName, retType);
         dictionary.addClassElement(className, pName, p);
-        String cap = pName.substring(0, 1).toUpperCase() + pName.substring(1);
-        dictionary.addTypeMember(className, "get" + cap, retType);
-        dictionary.addClassElement(className, "get" + cap, p);
+        if (hasGetter) {
+            dictionary.addTypeMember(className, getterName, retType);
+            dictionary.addClassElement(className, getterName, p);
+        }
         if (hasSetter) {
-            dictionary.addTypeMember(className, "set" + cap, "void");
-            dictionary.addClassElement(className, "set" + cap, p);
+            String setter = "set" + pName.substring(0, 1).toUpperCase() + pName.substring(1);
+            dictionary.addTypeMember(className, setter, "void");
+            dictionary.addClassElement(className, setter, p);
         }
     }
 
@@ -69,16 +87,18 @@ public abstract class AbstractModelHarvester {
     }
 
     protected static void registerGlobalFeature(String pName, String typeName, String ownerName, boolean containment,
-            boolean hasSetter, EObject p, ModelDictionary dictionary) {
+            String getterName, boolean hasSetter, boolean hasGetter, EObject p, ModelDictionary dictionary) {
         if (pName != null && !pName.isBlank()) {
             dictionary.addAutocompleteWord(pName);
             dictionary.addGlobalElement(pName, p);
-            String cap = pName.substring(0, 1).toUpperCase() + pName.substring(1);
-            dictionary.addAutocompleteWord("get" + cap);
-            dictionary.addGlobalElement("get" + cap, p);
+            if (hasGetter) {
+                dictionary.addAutocompleteWord(getterName);
+                dictionary.addGlobalElement(getterName, p);
+            }
             if (hasSetter) {
-                dictionary.addAutocompleteWord("set" + cap);
-                dictionary.addGlobalElement("set" + cap, p);
+                String setter = "set" + pName.substring(0, 1).toUpperCase() + pName.substring(1);
+                dictionary.addAutocompleteWord(setter);
+                dictionary.addGlobalElement(setter, p);
             }
             
             // MDE4CPP only generates create<T>_as_<ref>_in_<Owner> for containment/composite

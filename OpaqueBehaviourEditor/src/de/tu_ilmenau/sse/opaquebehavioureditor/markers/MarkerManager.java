@@ -13,6 +13,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.EValidator;
 import org.eclipse.emf.ecore.EObject;
 
+import de.tu_ilmenau.sse.opaquebehavioureditor.Activator;
 import de.tu_ilmenau.sse.opaquebehavioureditor.editor.text.LanguageDef;
 import de.tu_ilmenau.sse.opaquebehavioureditor.editor.text.LanguageMapping;
 import de.tu_ilmenau.sse.opaquebehavioureditor.model.TextRange;
@@ -22,7 +23,11 @@ import de.tu_ilmenau.sse.opaquebehavioureditor.utils.PluginLogger;
 
 public class MarkerManager {
 
-    public static final String MARKER_ID = "de.tu_ilmenau.sse.opaquebehavioureditor.problem";
+    /**
+     * The marker type declared in plugin.xml. Eclipse qualifies an extension id with the bundle's
+     * symbolic name, so this is the bundle id plus the extension's own id.
+     */
+    public static final String MARKER_ID = Activator.PLUGIN_ID + ".problem";
 
     /**
      * @param element the UML behaviour or the Ecore element owning the annotation being edited;

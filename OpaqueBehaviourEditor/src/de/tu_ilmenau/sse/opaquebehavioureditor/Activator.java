@@ -6,7 +6,8 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 public class Activator extends AbstractUIPlugin {
 
-	public static final String PLUGIN_ID = "de.tu_ilmenau.sse.opaquebehavioureditor";
+	/** Must match Bundle-SymbolicName in META-INF/MANIFEST.MF, which is hyphenated. */
+	public static final String PLUGIN_ID = "de.tu-ilmenau.sse.opaquebehavioureditor";
 
 	private static Activator plugin;
   

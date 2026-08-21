@@ -51,4 +51,25 @@ public class ExpressionParserTest {
         String code = "factory->";
         assertEquals("factory", ExpressionParser.resolveContextTypeFromText(code, dictionary, code));
     }
+
+    @Test
+    public void testDeclarationAfterTheCaretIsIgnored() {
+        // A variable declared later cannot describe an earlier use.
+        String code = "myLib->\nstd::shared_ptr<Book> myLib = factory->createBook();\n";
+        assertNull(ExpressionParser.resolveContextTypeFromText("myLib->", dictionary, code));
+    }
+
+    @Test
+    public void testNearestPrecedingDeclarationWins() {
+        String code = "std::shared_ptr<Book> x = factory->createBook();\n"
+                    + "std::shared_ptr<Library> x = factory->createLibrary();\n"
+                    + "x->";
+        assertEquals("Library", ExpressionParser.resolveContextTypeFromText(code, dictionary, code));
+    }
+
+    @Test
+    public void testCommentedOutDeclarationIsIgnored() {
+        String code = "//std::shared_ptr<Book> x;\nstd::shared_ptr<Library> x;\nx->";
+        assertEquals("Library", ExpressionParser.resolveContextTypeFromText(code, dictionary, code));
+    }
 }

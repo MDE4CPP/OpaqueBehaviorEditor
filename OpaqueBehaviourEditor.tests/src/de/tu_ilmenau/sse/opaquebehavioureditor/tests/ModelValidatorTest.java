@@ -66,4 +66,31 @@ public class ModelValidatorTest {
         List<TextRange> errors = validator.validateSyntax(code, cppLangDef);
         assertTrue("Comments should be ignored for syntax checks", errors.isEmpty());
     }
+
+    @Test
+    public void commentedOutMemberAccessIsNotAnError() {
+        String code = "std::shared_ptr<Library> lib;\n"
+                    + "//lib->invalidMethod();\n"
+                    + "/* lib->alsoInvalid(); */\n";
+        assertTrue("Commented-out code must not be validated",
+                validator.validateMemberAccess(code, cppLangDef).isEmpty());
+    }
+
+    @Test
+    public void memberAccessInsideAStringIsNotAnError() {
+        String code = "std::shared_ptr<Library> lib;\n"
+                    + "std::string s = \"call lib->invalidMethod() here\";\n";
+        assertTrue("String literals must not be validated",
+                validator.validateMemberAccess(code, cppLangDef).isEmpty());
+    }
+
+    @Test
+    public void realCodeAfterACommentIsStillValidated() {
+        String code = "std::shared_ptr<Library> lib;\n"
+                    + "//lib->ignored();\n"
+                    + "lib->invalidMethod();\n";
+        List<TextRange> errors = validator.validateMemberAccess(code, cppLangDef);
+        assertEquals(1, errors.size());
+        assertEquals("Method 'invalidMethod' is not defined in class 'Library'", errors.get(0).message);
+    }
 }

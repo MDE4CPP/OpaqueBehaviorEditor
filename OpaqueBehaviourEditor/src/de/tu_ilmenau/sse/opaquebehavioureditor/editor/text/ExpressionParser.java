@@ -19,6 +19,8 @@ public class ExpressionParser {
      * @return The determined C++ type (e.g., "Book"), or null if it cannot be resolved.
      */
     public static String resolveContextTypeFromText(String textBeforeCaret, ModelDictionary dictionary, String fullText) {
+        // A declaration can only apply to the caret if it appears before it.
+        int caret = textBeforeCaret.length();
         if (textBeforeCaret.endsWith("->")) {
             textBeforeCaret = textBeforeCaret.substring(0, textBeforeCaret.length() - 2);
         } else if (textBeforeCaret.endsWith(".")) {
@@ -55,7 +57,7 @@ public class ExpressionParser {
             
             if (i == 0) {
                 // Base variable
-                currentType = resolveVariableType(part, fullText);
+                currentType = resolveVariableType(part, fullText, caret);
             } else {
                 // Method or property on currentType (including inherited members)
                 if (currentType != null) {
@@ -86,32 +88,53 @@ public class ExpressionParser {
      * @return The simple type name (e.g., "Book"), or null if not found.
      */
     public static String resolveVariableType(String variableName, String fullText) {
+        return resolveVariableType(variableName, fullText, fullText == null ? 0 : fullText.length());
+    }
+
+    /**
+     * As above, but only considers declarations that appear before {@code caret}, and takes the
+     * one nearest to it - a later declaration of the same name cannot describe an earlier use.
+     */
+    public static String resolveVariableType(String variableName, String fullText, int caret) {
         if (variableName == null || variableName.isBlank()) return null;
 
         // The generated model factory is injected by the editor, not declared in the body.
         if (de.tu_ilmenau.sse.opaquebehavioureditor.model.AbstractModelHarvester.FACTORY_TYPE.equals(variableName)) {
             return variableName;
         }
-        
+        if (fullText == null) return null;
+
+        String scope = fullText.substring(0, Math.max(0, Math.min(caret, fullText.length())));
+        boolean[] isCode = TextScanState.codeMask(scope);
+
         java.util.regex.Pattern p1 = java.util.regex.Pattern.compile("std::(?:weak|shared|unique)_ptr<\\s*([A-Za-z0-9_:<>,\\s]+)\\s*>\\s+" + java.util.regex.Pattern.quote(variableName) + "\\b");
-        java.util.regex.Matcher m1 = p1.matcher(fullText);
-        if (m1.find()) {
-            String type = m1.group(1).trim();
+        String smartPtrType = lastMatch(p1.matcher(scope), isCode, null);
+        if (smartPtrType != null) {
+            String type = smartPtrType.trim();
             if (!type.contains("<")) { // Simple type
                 return type.substring(type.lastIndexOf(':') + 1);
             }
             return type; // e.g. Bag<Author>
         }
-        
+
         java.util.regex.Pattern p2 = java.util.regex.Pattern.compile("\\b([A-Za-z0-9_:]+)\\s*\\**\\s+" + java.util.regex.Pattern.quote(variableName) + "\\b");
-        java.util.regex.Matcher m2 = p2.matcher(fullText);
-        while (m2.find()) {
-            String type = m2.group(1);
-            if (!type.equals("return") && !type.equals("new") && !type.equals("delete")) {
-                return type.substring(type.lastIndexOf(':') + 1);
-            }
+        String plainType = lastMatch(p2.matcher(scope), isCode, java.util.Set.of("return", "new", "delete"));
+        if (plainType != null) {
+            return plainType.substring(plainType.lastIndexOf(':') + 1);
         }
-        
+
         return null;
+    }
+
+    /** Last group-1 match that sits in real code and is not one of {@code rejected}. */
+    private static String lastMatch(java.util.regex.Matcher m, boolean[] isCode, java.util.Set<String> rejected) {
+        String found = null;
+        while (m.find()) {
+            if (m.start() < isCode.length && !isCode[m.start()]) continue;
+            String type = m.group(1).trim();
+            if (rejected != null && rejected.contains(type)) continue;
+            found = type;
+        }
+        return found;
     }
 }

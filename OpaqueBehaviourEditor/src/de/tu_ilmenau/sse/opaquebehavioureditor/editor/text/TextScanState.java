@@ -11,6 +11,28 @@ public class TextScanState {
     }
 
     /**
+     * Marks every offset of {@code text} that is real code, i.e. not inside a string, a char
+     * literal or a comment. Lets callers run plain regexes over the text without matching
+     * commented-out or quoted snippets.
+     */
+    public static boolean[] codeMask(String text) {
+        boolean[] code = new boolean[text == null ? 0 : text.length()];
+        if (text == null) return code;
+
+        TextScanState state = new TextScanState();
+        for (int i = 0; i < text.length(); i++) {
+            boolean wasIgnored = state.isIgnored();
+            int skip = state.process(text, i);
+            boolean isCode = !wasIgnored && !state.isIgnored();
+            for (int j = i; j <= i + skip && j < text.length(); j++) {
+                code[j] = isCode;
+            }
+            i += skip;
+        }
+        return code;
+    }
+
+    /**
      * Processes the character at index i and returns the number of extra characters to skip.
      * (e.g. returns 1 for 2-character tokens like single-line and multi-line comment markers).
      */

@@ -43,8 +43,11 @@ public class ModelValidator {
         }
         
         java.util.regex.Matcher m = MEMBER_ACCESS_PATTERN.matcher(text);
+        boolean[] isCode = TextScanState.codeMask(text);
         
         while (m.find()) {
+            // Commented-out or quoted code is not an error.
+            if (!isCode[m.start()]) continue;
             String methodName = m.group(1);
             int methodOffset = m.start(1);
             int methodLength = methodName.length();

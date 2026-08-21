@@ -10,6 +10,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EOperation;
+import org.eclipse.emf.ecore.EcorePackage;
 
 /**
  * Utility class to traverse an Ecore Model and harvest elements (EClasses, EStructuralFeatures, EOperations)
@@ -105,9 +106,6 @@ public class EcoreModelHarvester extends AbstractModelHarvester {
                 // ALL EClasses implicitly inherit from ecore::EObject
                 dictionary.addSuperType(c.getName(), "ecore::EObject");
 
-                // Harvest methods from the Ecore metaclass hierarchy (e.g. ecore::EClass, ecore::EObject).
-                // These are runtime methods available on all EObjects in EMF.
-                harvestMetaclassMethods(c, c.getName(), dictionary);
             }
             
             // 4. Register operations as global words
@@ -126,6 +124,7 @@ public class EcoreModelHarvester extends AbstractModelHarvester {
         }
 
         registerFactoryBuiltins(dictionary);
+        harvestMetaclassMethods(dictionary);
 
         // Register AQL/OCL built-in services on a synthetic type
         registerAqlServices(dictionary);
@@ -150,38 +149,36 @@ public class EcoreModelHarvester extends AbstractModelHarvester {
     }
 
     /**
-     * Harvests methods from the Ecore metaclass hierarchy (e.g. ecore::EClass, ecore::EObject)
-     * for a given EClass. These are runtime methods available on all EObjects in EMF
-     * that are not part of the user model but are inherited from the Ecore metaclass hierarchy.
+     * Registers the reflective Ecore metaclass API (ecore::EClass and its supertypes) as its own
+     * types. A generated class is an ecore::EObject, not an ecore::EClass, so these members are
+     * reached through eClass() - which aql::Services already declares as returning ecore::EClass -
+     * and must not be attached to the model classes themselves.
      */
-    private static void harvestMetaclassMethods(EClass eClass, String className, ModelDictionary dictionary) {
-        if (className == null || className.isBlank()) return;
-
-        EClass metaEClass = eClass.eClass();
-        Set<EClass> visited = new HashSet<>();
-        harvestEClassHierarchy(metaEClass, className, dictionary, visited);
+    private static void harvestMetaclassMethods(ModelDictionary dictionary) {
+        harvestEClassHierarchy(EcorePackage.eINSTANCE.getEClass(), dictionary, new HashSet<>());
     }
 
     /**
-     * Recursively traverses the EClass hierarchy and registers structural features
-     * and operations from each metaclass, linking them as supertypes of the user class.
+     * Recursively traverses the metaclass hierarchy and registers the structural features and
+     * operations of each metaclass on that metaclass.
      */
-    private static void harvestEClassHierarchy(EClass eClass, String userClassName,
-            ModelDictionary dictionary, Set<EClass> visited) {
+    private static void harvestEClassHierarchy(EClass eClass, ModelDictionary dictionary, Set<EClass> visited) {
         if (eClass == null || !visited.add(eClass)) return;
 
         String metaclassName = buildMetaclassName(eClass);
 
-        dictionary.addSuperType(userClassName, metaclassName);
-
         for (EStructuralFeature feature : eClass.getEStructuralFeatures()) {
             String featureName = feature.getName();
-            String featureType = feature.getEType() != null ? feature.getEType().getName() : "Object";
+            String featureType = computeCollectionType(
+                    feature.getEType() != null ? feature.getEType().getName() : "Object",
+                    feature.isMany(), feature.isOrdered(), feature.isUnique());
             dictionary.addTypeMember(metaclassName, featureName, featureType);
             if (featureName != null && !featureName.isBlank()) {
                 String cap = featureName.substring(0, 1).toUpperCase() + featureName.substring(1);
                 dictionary.addTypeMember(metaclassName, "get" + cap, featureType);
-                dictionary.addTypeMember(metaclassName, "set" + cap, "void");
+                if (hasSetter(feature.isMany(), feature.isChangeable())) {
+                    dictionary.addTypeMember(metaclassName, "set" + cap, "void");
+                }
             }
         }
 
@@ -192,9 +189,8 @@ public class EcoreModelHarvester extends AbstractModelHarvester {
         }
 
         for (EClass superEClass : eClass.getESuperTypes()) {
-            String superMetaclassName = buildMetaclassName(superEClass);
-            dictionary.addSuperType(metaclassName, superMetaclassName);
-            harvestEClassHierarchy(superEClass, userClassName, dictionary, visited);
+            dictionary.addSuperType(metaclassName, buildMetaclassName(superEClass));
+            harvestEClassHierarchy(superEClass, dictionary, visited);
         }
     }
 

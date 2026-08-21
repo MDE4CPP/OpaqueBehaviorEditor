@@ -127,4 +127,15 @@ public class EcoreModelHarvesterTest {
         assertTrue(f.containsKey("create"));      // generic reflective create(...)
         assertTrue(f.containsKey("eInstance"));
     }
+
+    @Test
+    public void reflectiveApiHangsOffEClassNotOffTheModelClass() {
+        // A generated class is an ecore::EObject; the EClass API is reached via eClass().
+        ModelDictionary d = harvest();
+        assertFalse(d.getAllTypeMembers("Book").containsKey("getEAllAttributes"));
+        assertFalse(d.getAllTypeMembers("Book").containsKey("setAbstract"));
+        assertTrue(d.getAllTypeMembers("ecore::EClass").containsKey("getEAllAttributes"));
+        // eStructuralFeatures is multi-valued, so there is no setter for it either.
+        assertFalse(d.getAllTypeMembers("ecore::EClass").containsKey("setEStructuralFeatures"));
+    }
 }

@@ -27,7 +27,7 @@ import de.tu_ilmenau.sse.opaquebehavioureditor.model.ModelDictionary;
 import de.tu_ilmenau.sse.opaquebehavioureditor.utils.PluginLogger;
 
 /**
- * Orchestrates code completion, smart pointers, tooltips, and hyperlink navigation
+ * Orchestrates code completion, tooltips, and hyperlink navigation
  * for a {@link StyledText} widget.
  */
 public class CodeCompletionProvider {

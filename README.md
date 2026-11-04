@@ -47,10 +47,6 @@ To open the custom OpaqueBehaviour code editor:
 - **Rename Symbol**: Intelligently find and rename all occurrences of a variable within the behavior body (F2 or Ctrl+R).
 - Fully compatible with both Eclipse Light and Dark themes.
 
-### 🪄 Smart Pointers & Typing Assists
-
-- **C++ Smart Pointers**: If you type `.` on a variable that the editor resolves as a C++ pointer type, it automatically transforms the keystroke into `->` to save you time.
-
 ### 🔄 Multi-Language Support & Translation
 
 - Natively supports **C++** and **Java** language definitions, easily toggleable via a dropdown menu.

@@ -74,7 +74,6 @@ public class CodeCompletionProvider {
         setupKeyboardTriggers();
         setupAutoPopupTriggers();
         setupFocusDismissal();
-        setupSmartPointers();
     }
 
     private void setupKeyboardTriggers() {
@@ -133,19 +132,6 @@ public class CodeCompletionProvider {
                         popup.dismiss();
                     }
                 });
-            }
-        });
-    }
-
-    private void setupSmartPointers() {
-        styledText.addVerifyListener(e -> {
-            if (inserting) return;
-            if (e.text.equals(".") && engine.getCurrentLangDef() != null && engine.getCurrentLangDef().name.equals(LanguageMapping.LANG_CPP)) {
-                String textBefore = styledText.getText().substring(0, e.start) + ".";
-                String type = ExpressionParser.resolveContextTypeFromText(textBefore, dictionary, styledText.getText());
-                if (type != null) {
-                    e.text = "->";
-                }
             }
         });
     }
